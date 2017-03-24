@@ -1,0 +1,5 @@
+package psd
+
+func Decode() {
+
+}
