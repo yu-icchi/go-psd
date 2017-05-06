@@ -1,0 +1,58 @@
+package layer
+
+import (
+	"io"
+
+	"github.com/yu-ichiko/go-psd/psd/header"
+	"github.com/yu-ichiko/go-psd/psd/util"
+	"fmt"
+)
+
+func parseInfo(r io.Reader, header *header.Header) ([]*Layer, int, error) {
+	var l int
+	var read int
+	var err error
+
+	// Length of the layers info section
+	size := util.GetSize(header.IsPSB())
+	buf := make([]byte, size)
+	if l, err = io.ReadFull(r, buf); err != nil {
+		return nil, 0, err
+	}
+	read += l
+	size = int(util.ReadUint(buf))
+	if size <= 0 {
+		return nil, read, nil
+	}
+	fmt.Println("=== info size:", size)
+
+	// Layer count
+	buf = make([]byte, 2)
+	if l, err = io.ReadFull(r, buf); err != nil {
+		return nil, read, err
+	}
+	read += l
+	count := int(util.ReadUint16(buf, 0))
+	fmt.Println("=== info count:", count)
+
+	layers := []*Layer{}
+	for i := 0; i < count; i++ {
+		layer, l, err := parseRecord(r, header)
+		if err != nil {
+			return nil, read, err
+		}
+		read += l
+		layer.Index = i
+		fmt.Printf("==== record layer: %+v\n", layer)
+
+		layers = append(layers, layer)
+	}
+
+	// Channel image data
+	for _, layer := range layers {
+		l, err = parseChannelImageData(r, header, layer)
+		fmt.Println(err)
+	}
+
+	return nil, 0, nil
+}

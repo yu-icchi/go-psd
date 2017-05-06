@@ -1,2 +1,6 @@
 package: github.com/yu-ichiko/go-psd
-import: []
+import:
+- package: github.com/stretchr/testify
+  subpackages:
+  - assert
+- package: gopkg.in/yaml.v2
