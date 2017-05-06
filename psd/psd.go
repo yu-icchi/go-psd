@@ -4,10 +4,10 @@ import (
 	"io"
 	"fmt"
 
-	"github.com/yu-ichiko/go-psd/psd/header"
-	"github.com/yu-ichiko/go-psd/psd/colormodedata"
-	"github.com/yu-ichiko/go-psd/psd/resources"
-	"github.com/yu-ichiko/go-psd/psd/layer"
+	"github.com/yu-ichiko/go-psd/psd/section/header"
+	"github.com/yu-ichiko/go-psd/psd/section/colormodedata"
+	"github.com/yu-ichiko/go-psd/psd/section/resources"
+	"github.com/yu-ichiko/go-psd/psd/section/layer"
 )
 
 func Parse(r io.Reader) error {

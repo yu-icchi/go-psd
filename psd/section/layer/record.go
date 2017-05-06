@@ -1,11 +1,11 @@
 package layer
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"errors"
 
-	"github.com/yu-ichiko/go-psd/psd/header"
+	"github.com/yu-ichiko/go-psd/psd/section/header"
 	"github.com/yu-ichiko/go-psd/psd/util"
 )
 
@@ -45,7 +45,7 @@ func parseRecord(r io.Reader, header *header.Header) (*Layer, int, error) {
 			return nil, read, err
 		}
 		read += l
-		channel.ID = int(util.ReadUint16(buf, 0))
+		channel.ID = int(int16(util.ReadUint16(buf, 0)))
 
 		size := util.GetSize(header.IsPSB())
 		buf = make([]byte, size)
@@ -72,13 +72,13 @@ func parseRecord(r io.Reader, header *header.Header) (*Layer, int, error) {
 	// Blend Mode
 	layer.BlendMode = util.ReadString(buf, 4, 8)
 	// Opacity
-	layer.Opacity = buf[8]
+	layer.Opacity = int(buf[8])
 	// Clipping
-	layer.Clipping = buf[9]
+	layer.Clipping = int(buf[9])
 	// Flags
-	layer.Flags = buf[10]
+	layer.Flags = int(buf[10])
 	// Filler
-	layer.Filter = buf[11]
+	layer.Filter = int(buf[11])
 
 	// extra field length
 	buf = make([]byte, 4)

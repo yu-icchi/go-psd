@@ -3,7 +3,7 @@ package layer
 import (
 	"io"
 
-	"github.com/yu-ichiko/go-psd/psd/header"
+	"github.com/yu-ichiko/go-psd/psd/section/header"
 	"github.com/yu-ichiko/go-psd/psd/util"
 	"fmt"
 )

@@ -3,7 +3,7 @@ package layer
 import (
 	"io"
 
-	"github.com/yu-ichiko/go-psd/psd/header"
+	"github.com/yu-ichiko/go-psd/psd/section/header"
 	"github.com/yu-ichiko/go-psd/psd/util"
 
 	"fmt"
@@ -23,10 +23,10 @@ type Layer struct {
 	Channels []Channel
 
 	BlendMode string
-	Opacity   byte
-	Clipping  byte
-	Flags     byte
-	Filter    byte
+	Opacity   int
+	Clipping  int
+	Flags     int
+	Filter    int
 }
 
 type Channel struct {
@@ -78,6 +78,13 @@ func Parse(r io.Reader, header *header.Header) (layer []Layer, read int, err err
 	parseInfo(r, header)
 
 	// Global layer mask info
+	buf = make([]byte, 4)
+	if l, err = io.ReadFull(r, buf); err != nil {
+		return nil, read, err
+	}
+	read += l
+	size = int(util.ReadUint32(buf, 0))
+	fmt.Println("=== grobal layer mask info:", size)
 
 	return
 }
