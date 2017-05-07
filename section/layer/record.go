@@ -5,23 +5,21 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/yu-ichiko/go-psd/psd/section/header"
-	"github.com/yu-ichiko/go-psd/psd/util"
+	"github.com/yu-ichiko/go-psd/section/header"
+	"github.com/yu-ichiko/go-psd/util"
 )
 
-func parseRecord(r io.Reader, header *header.Header) (*Layer, int, error) {
+func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err error) {
 	var l int
-	var read int
-	var err error
 
 	// Rectangle containing the contents of the layer
 	buf := make([]byte, 4*4)
 	if l, err = io.ReadFull(r, buf); err != nil {
-		return nil, read, err
+		return
 	}
 	read += l
 
-	layer := Layer{}
+	layer = Layer{}
 
 	layer.Top = int(util.ReadUint32(buf, 0))
 	layer.Left = int(util.ReadUint32(buf, 4))
@@ -31,7 +29,7 @@ func parseRecord(r io.Reader, header *header.Header) (*Layer, int, error) {
 	// Number of channels in the layer
 	buf = make([]byte, 2)
 	if l, err = io.ReadFull(r, buf); err != nil {
-		return nil, read, err
+		return
 	}
 	read += l
 	numChannels := int(util.ReadUint16(buf, 0))
@@ -42,7 +40,7 @@ func parseRecord(r io.Reader, header *header.Header) (*Layer, int, error) {
 
 		buf := make([]byte, 2)
 		if l, err = io.ReadFull(r, buf); err != nil {
-			return nil, read, err
+			return
 		}
 		read += l
 		channel.ID = int(int16(util.ReadUint16(buf, 0)))
@@ -50,7 +48,7 @@ func parseRecord(r io.Reader, header *header.Header) (*Layer, int, error) {
 		size := util.GetSize(header.IsPSB())
 		buf = make([]byte, size)
 		if l, err = io.ReadFull(r, buf); err != nil {
-			return nil, read, err
+			return
 		}
 		read += l
 		channel.Length = int(util.ReadUint(buf))
@@ -61,12 +59,13 @@ func parseRecord(r io.Reader, header *header.Header) (*Layer, int, error) {
 
 	buf = make([]byte, 12)
 	if l, err = io.ReadFull(r, buf); err != nil {
-		return nil, read, err
+		return
 	}
 	read += l
 
 	if util.ReadString(buf, 0, 4) != "8BIM" {
-		return nil, read, errors.New("invalid psd:layer signature")
+		err = errors.New("invalid psd:layer signature")
+		return
 	}
 
 	// Blend Mode
@@ -83,16 +82,16 @@ func parseRecord(r io.Reader, header *header.Header) (*Layer, int, error) {
 	// extra field length
 	buf = make([]byte, 4)
 	if l, err = io.ReadFull(r, buf); err != nil {
-		return nil, read, err
+		return
 	}
 	extraLength := int(util.ReadUint32(buf, 0))
 	if extraLength <= 0 {
-		return nil, read, err
+		return
 	}
 
 	buf = make([]byte, extraLength)
 	if l, err = io.ReadFull(r, buf); err != nil {
-		return nil, read, err
+		return
 	}
 	read += l
 
@@ -110,5 +109,5 @@ func parseRecord(r io.Reader, header *header.Header) (*Layer, int, error) {
 
 	fmt.Println(buf[n+m+l:])
 
-	return &layer, read, nil
+	return
 }

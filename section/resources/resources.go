@@ -4,7 +4,7 @@ import (
 	"io"
 	"errors"
 
-	"github.com/yu-ichiko/go-psd/psd/util"
+	"github.com/yu-ichiko/go-psd/util"
 )
 
 const (

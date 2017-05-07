@@ -2,47 +2,41 @@ package psd
 
 import (
 	"io"
+	"fmt"
+
+	"github.com/yu-ichiko/go-psd/section/header"
+	"github.com/yu-ichiko/go-psd/section/colormodedata"
+	"github.com/yu-ichiko/go-psd/section/resources"
+	"github.com/yu-ichiko/go-psd/section/layer"
 )
 
-func Decode(r io.Reader) (*PSD, error) {
+func Parse(r io.Reader) error {
 
-	psd := newPSD()
-	var read int
-
-	// File Header Section
-	// http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_19840
-	header, l, err := readHeader(r)
+	header, _, err := header.Parse(r)
 	if err != nil {
-		return nil, err
-	}
-	psd.SetFileHeader(*header)
-	read += l
-
-	// Color Mode Data Section
-	// http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_71638
-	colorModeData, l, err := readColorModeData(r)
-	if err != nil {
-		return nil, err
-	}
-	psd.SetColorModeData(colorModeData)
-	read += l
-
-	// Image Resources Section
-	// http://www.adobe.com/devnet-apps/photoshop/fileformatashtml/#50577409_69883
-	imageRes, _, err := readImageResources(r)
-	if err != nil {
-		return nil, err
-	}
-	psd.ImageResourceBlocks = imageRes
-
-	err = readLayerAndMarkInfo(r, psd)
-	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return psd, nil
-}
+	fmt.Printf("%+v\n", header)
 
-func Encode(w io.Writer, psd *PSD) error {
+	colorModeData, _, err := colormodedata.Parse(r)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("%+v\n", colorModeData)
+
+	imageResourceBlocks, _, err := resources.Parse(r)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(imageResourceBlocks)
+
+	_, _, err = layer.Parse(r, header)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

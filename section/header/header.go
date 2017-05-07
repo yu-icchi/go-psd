@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io"
 
-	"github.com/yu-ichiko/go-psd/psd/util"
+	"github.com/yu-ichiko/go-psd/util"
 )
 
 // The color mode of the file
@@ -19,19 +19,30 @@ const (
 	Lab          = "Lab"
 )
 
+const (
+	ColorModeBitmap       = ColorMode(0)
+	ColorModeGrayscale    = ColorMode(1)
+	ColorModeIndexed      = ColorMode(2)
+	ColorModeRGB          = ColorMode(3)
+	ColorModeCMYK         = ColorMode(4)
+	ColorModeMultichannel = ColorMode(7)
+	ColorModeDuotone      = ColorMode(8)
+	ColorModeLab          = ColorMode(9)
+)
+
 var (
 	headerLens = []int{4, 2, 6, 2, 4, 4, 2, 2}
 )
 
 // header error
 var (
-	ErrHeaderFormat    = errors.New("invalid psd:header format")
-	ErrHeaderVersion   = errors.New("invalid psd:header version")
-	ErrHeaderChannels  = errors.New("invalid psd:header channels")
-	ErrHeaderHeight    = errors.New("invalid psd:header height")
-	ErrHeaderWidth     = errors.New("invalid psd:header width")
-	ErrHeaderDepth     = errors.New("invalid psd:header depth")
-	ErrHeaderColorMode = errors.New("invalid psd:header colorMode")
+	ErrHeaderFormat    = errors.New("psd: invalid header format")
+	ErrHeaderVersion   = errors.New("psd: invalid header version")
+	ErrHeaderChannels  = errors.New("psd: invalid header channels")
+	ErrHeaderHeight    = errors.New("psd: invalid header height")
+	ErrHeaderWidth     = errors.New("psd: invalid header width")
+	ErrHeaderDepth     = errors.New("psd: invalid header depth")
+	ErrHeaderColorMode = errors.New("psd: invalid header colorMode")
 )
 
 // Header File Header Section
@@ -56,21 +67,21 @@ type ColorMode int
 // Name color mode name
 func (c ColorMode) Name() string {
 	switch c {
-	case 0:
+	case ColorModeBitmap:
 		return Bitmap
-	case 1:
+	case ColorModeGrayscale:
 		return Grayscale
-	case 2:
+	case ColorModeIndexed:
 		return Indexed
-	case 3:
+	case ColorModeRGB:
 		return RGB
-	case 4:
+	case ColorModeCMYK:
 		return CMYK
-	case 7:
+	case ColorModeMultichannel:
 		return Multichannel
-	case 8:
+	case ColorModeDuotone:
 		return Duotone
-	case 9:
+	case ColorModeLab:
 		return Lab
 	default:
 		return ""

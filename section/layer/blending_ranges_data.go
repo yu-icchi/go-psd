@@ -1,7 +1,7 @@
 package layer
 
 import (
-	"github.com/yu-ichiko/go-psd/psd/util"
+	"github.com/yu-ichiko/go-psd/util"
 	"fmt"
 )
 
