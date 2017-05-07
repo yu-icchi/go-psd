@@ -48,16 +48,13 @@ func parseInfo(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	}
 
 	// Channel image data
-	for _, layer := range layers {
+	for i, layer := range layers {
 		img, l, err := parseChannelImageData(r, header, layer)
 		if err != nil {
 			return nil, read, err
 		}
 		read += l
-		layer.Image = img
-		if layer.Image != nil {
-			fmt.Println(layer.Image.Bounds())
-		}
+		layers[i].Image = img
 	}
 
 	return layers, read, nil

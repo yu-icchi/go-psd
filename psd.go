@@ -33,9 +33,14 @@ func Parse(r io.Reader) error {
 
 	fmt.Println(imageResourceBlocks)
 
-	_, _, err = layer.Parse(r, header)
+	layers, _, err := layer.Parse(r, header)
 	if err != nil {
 		return err
+	}
+	for _, l := range layers {
+		if l.Image != nil {
+			fmt.Println(l.Image.Bounds())
+		}
 	}
 
 	return nil
