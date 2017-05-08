@@ -3,7 +3,7 @@ package imagedata
 import (
 	"io"
 
-	"github.com/yu-ichiko/go-psd/psd/util"
+	"github.com/yu-ichiko/go-psd/util"
 
 	"fmt"
 )
