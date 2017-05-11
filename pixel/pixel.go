@@ -27,11 +27,11 @@ func newPixelRGB(depth int, hasAlpha bool) Pixel {
 			return &PixelNRGBA8{}
 		}
 		return &PixelNRGB8{}
-	//case 16:
-	//	if hasAlpha {
-	//		return &PixelNRGBA16{}
-	//	}
-	//	return &PixelNRGB16{}
+	case 16:
+		if hasAlpha {
+			return &PixelNRGBA16{}
+		}
+		return &PixelNRGB16{}
 	//case 32:
 	//	if hasAlpha {
 	//		return &PixelNRGBA32{}

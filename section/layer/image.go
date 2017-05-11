@@ -2,12 +2,12 @@ package layer
 
 import (
 	"fmt"
-	"io"
 	"image"
+	"io"
 
+	"github.com/yu-ichiko/go-psd/pixel"
 	"github.com/yu-ichiko/go-psd/section/header"
 	"github.com/yu-ichiko/go-psd/util"
-	"github.com/yu-ichiko/go-psd/pixel"
 )
 
 func parseChannelImageData(r io.Reader, header *header.Header, layer Layer) (image.Image, int, error) {

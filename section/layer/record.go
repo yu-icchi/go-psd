@@ -2,7 +2,6 @@ package layer
 
 import (
 	"errors"
-	"fmt"
 	"io"
 
 	"github.com/yu-ichiko/go-psd/section/header"
@@ -13,7 +12,7 @@ func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err
 	var l int
 
 	// Rectangle containing the contents of the layer
-	buf := make([]byte, 4*4)
+	buf := make([]byte, 4*4+2)
 	if l, err = io.ReadFull(r, buf); err != nil {
 		return
 	}
@@ -27,33 +26,28 @@ func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err
 	layer.Right = int(util.ReadUint32(buf, 12))
 
 	// Number of channels in the layer
-	buf = make([]byte, 2)
-	if l, err = io.ReadFull(r, buf); err != nil {
-		return
-	}
-	read += l
-	numChannels := int(util.ReadUint16(buf, 0))
+	numChannels := int(util.ReadUint16(buf, 16))
 
-	channels := []Channel{}
-	for i := 0; i < numChannels; i++ {
+	size := util.GetSize(header.IsPSB())
+	channels := make([]Channel, numChannels)
+	for i := range channels {
 		channel := Channel{}
 
-		buf := make([]byte, 2)
+		buf := make([]byte, 2+size)
 		if l, err = io.ReadFull(r, buf); err != nil {
 			return
 		}
 		read += l
+
 		channel.ID = int(int16(util.ReadUint16(buf, 0)))
-
-		size := util.GetSize(header.IsPSB())
-		buf = make([]byte, size)
-		if l, err = io.ReadFull(r, buf); err != nil {
-			return
+		if size == 4 {
+			channel.Length = int(util.ReadUint32(buf, 2))
 		}
-		read += l
-		channel.Length = int(util.ReadUint(buf))
+		if size == 8 {
+			channel.Length = int(util.ReadUint64(buf, 2))
+		}
 
-		channels = append(channels, channel)
+		channels[i] = channel
 	}
 	layer.Channels = channels
 
@@ -64,7 +58,7 @@ func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err
 	read += l
 
 	if util.ReadString(buf, 0, 4) != "8BIM" {
-		err = errors.New("invalid psd:layer signature")
+		err = errors.New("psd: invalid layer signature")
 		return
 	}
 
@@ -73,11 +67,15 @@ func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err
 	// Opacity
 	layer.Opacity = int(buf[8])
 	// Clipping
-	layer.Clipping = int(buf[9])
+	layer.Clipping = Clipping(buf[9])
 	// Flags
-	layer.Flags = int(buf[10])
+	layer.Flags = buf[10]
 	// Filler
 	layer.Filter = int(buf[11])
+
+	//fmt.Printf("%b\n", layer.Flags)
+	//fmt.Println("+++", layer.Visible())
+	//fmt.Println("+++", layer.Obsolete())
 
 	// extra field length
 	buf = make([]byte, 4)
@@ -104,10 +102,8 @@ func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err
 	// Layer name (MBCS)
 	str, l := util.PascalString(buf, n+m)
 	layer.LegacyName = str
-	padding := (4 - ((1 + l) % 4)) % 4
-	fmt.Println(padding)
-
-	fmt.Println(buf[n+m+l:])
+	//padding := (4 - ((1 + l) % 4)) % 4
+	//fmt.Println(padding)
 
 	return
 }

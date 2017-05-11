@@ -1,6 +1,8 @@
 package pixel
 
-import "image"
+import (
+	"image"
+)
 
 type PixelNRGB32 struct {
 	Rect image.Rectangle

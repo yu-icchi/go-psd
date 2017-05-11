@@ -5,7 +5,6 @@ import (
 
 	"github.com/yu-ichiko/go-psd/section/header"
 	"github.com/yu-ichiko/go-psd/util"
-	"fmt"
 )
 
 func parseInfo(r io.Reader, header *header.Header) ([]Layer, int, error) {
@@ -23,7 +22,7 @@ func parseInfo(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	if size <= 0 {
 		return nil, read, nil
 	}
-	fmt.Println("=== info size:", size)
+	// fmt.Println("=== info size:", size)
 
 	// Layer count
 	buf = make([]byte, 2)
@@ -32,19 +31,18 @@ func parseInfo(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	}
 	read += l
 	count := int(util.ReadUint16(buf, 0))
-	fmt.Println("=== info count:", count)
+	// fmt.Println("=== info count:", count)
 
-	layers := []Layer{}
-	for i := 0; i < count; i++ {
+	layers := make([]Layer, count)
+	for i := range layers {
 		layer, l, err := parseRecord(r, header)
 		if err != nil {
 			return nil, read, err
 		}
 		read += l
 		layer.Index = i
-		fmt.Printf("==== record layer: %+v\n", layer)
-
-		layers = append(layers, layer)
+		// fmt.Printf("==== record layer: %+v\n", layer)
+		layers[i] = layer
 	}
 
 	// Channel image data

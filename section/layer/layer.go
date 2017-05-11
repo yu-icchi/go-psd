@@ -6,25 +6,55 @@ import (
 	"github.com/yu-ichiko/go-psd/section/header"
 	"github.com/yu-ichiko/go-psd/util"
 
-	"fmt"
 	"image"
 )
 
 type Layer struct {
 	Index       int
+
 	LegacyName  string
 	UnicodeName string
+
 	Top         int
 	Left        int
 	Bottom      int
 	Right       int
+
 	Channels    []Channel
 	BlendMode   string
 	Opacity     int
-	Clipping    int
-	Flags       int
+	Clipping    Clipping
+	Flags       byte
 	Filter      int
+
 	Image       image.Image
+}
+
+func (l Layer) Name() string {
+	if l.UnicodeName == "" {
+		return l.LegacyName
+	}
+	return l.UnicodeName
+}
+
+func (l Layer) Rect() image.Rectangle {
+	return image.Rect(l.Left, l.Top, l.Right, l.Bottom)
+}
+
+func (l Layer) Width() int {
+	return l.Right - l.Left
+}
+
+func (l Layer) Height() int {
+	return l.Bottom - l.Top
+}
+
+func (l Layer) Visible() bool {
+	return l.Flags&2 == 1
+}
+
+func (l Layer) Obsolete() bool {
+	return l.Flags&4 == 1
 }
 
 type Channel struct {
@@ -32,27 +62,40 @@ type Channel struct {
 	Length int
 }
 
-func (l *Layer) Name() string {
-	if l.UnicodeName == "" {
-		return l.LegacyName
+type Clipping int
+
+func (c Clipping) String() string {
+	switch c {
+	case 0:
+		return "base"
+	case 1:
+		return "non-base"
 	}
-	return l.UnicodeName
+	return ""
 }
 
-func (l *Layer) Width() int {
-	return l.Right - l.Left
-}
+type Mask struct {
+	Top                int
+	Left               int
+	Bottom             int
+	Right              int
+	DefaultColor       int
+	Flags              byte
 
-func (l *Layer) Height() int {
-	return l.Bottom - l.Top
-}
+	MaskParametersFlag int
+	UserMaskDensity    int
+	UserMaskFeather    float64
+	VectorMaskDensity  int
+	VectorMaskFeather  float64
 
-func (l *Layer) IsFolderStart() bool {
-	return false
-}
+	Padding            int
 
-func (l *Layer) IsFolderEnd() bool {
-	return false
+	RealFlags          int
+	RealBackground     int
+	RealTop            int
+	RealLeft           int
+	RealBottom         int
+	RealRight          int
 }
 
 func Parse(r io.Reader, header *header.Header) ([]Layer, int, error) {
@@ -72,7 +115,7 @@ func Parse(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	if size <= 0 {
 		return nil, read, nil
 	}
-	fmt.Println("== size:", size)
+	// fmt.Println("== size:", size)
 
 	// Layer info
 	layers, l, err := parseInfo(r, header)
@@ -88,7 +131,7 @@ func Parse(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	}
 	read += l
 	size = int(util.ReadUint32(buf, 0))
-	fmt.Println("=== grobal layer mask info:", size)
+	// fmt.Println("=== grobal layer mask info:", size)
 
 	return layers, 0, nil
 }

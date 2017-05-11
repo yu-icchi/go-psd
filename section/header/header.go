@@ -65,7 +65,7 @@ func (h *Header) IsPSB() bool {
 type ColorMode int
 
 // Name color mode name
-func (c ColorMode) Name() string {
+func (c ColorMode) String() string {
 	switch c {
 	case ColorModeBitmap:
 		return Bitmap

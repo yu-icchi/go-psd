@@ -1,8 +1,8 @@
 package resources
 
 import (
-	"io"
 	"errors"
+	"io"
 
 	"github.com/yu-ichiko/go-psd/util"
 )
@@ -37,14 +37,14 @@ func Parse(r io.Reader) ([]ImageResourceBlock, int, error) {
 		return nil, length, err
 	}
 
-	list := []ImageResourceBlock{}
-	read := 0
+	list := make([]ImageResourceBlock, size)
+	var read, i int
 	for read < size {
 		block := ImageResourceBlock{}
 
 		block.Signature = util.ReadString(buf, read, read+length)
 		if !validSignature(block.Signature) {
-			return nil, read+length, errors.New("psd: invalid image resource signature")
+			return nil, read + length, errors.New("psd: invalid image resource signature")
 		}
 		read += length
 
@@ -59,12 +59,13 @@ func Parse(r io.Reader) ([]ImageResourceBlock, int, error) {
 		size := int(util.ReadUint32(buf, read))
 		read += 4
 
-		block.Data = buf[read : read+size]
+		block.Data = buf[read:read+size]
 		read += size
 		read += util.AdjustAlign2(size)
 
-		list = append(list, block)
+		list[i] = block
+		i++
 	}
 
-	return list, read+length, nil
+	return list, read + length, nil
 }

@@ -9,6 +9,10 @@ func ReadString(buf []byte, offset int, limit int) string {
 	return string(buf[offset:limit])
 }
 
+func ReadUint8(buf []byte, offset int) uint8 {
+	return uint8(buf[offset])
+}
+
 func ReadUint16(buf []byte, offset int) uint16 {
 	return binary.BigEndian.Uint16(buf[offset:offset+2])
 }
