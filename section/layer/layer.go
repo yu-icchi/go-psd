@@ -1,33 +1,32 @@
 package layer
 
 import (
+	"image"
 	"io"
 
 	"github.com/yu-ichiko/go-psd/section/header"
 	"github.com/yu-ichiko/go-psd/util"
-
-	"image"
 )
 
 type Layer struct {
-	Index       int
+	Index int
 
 	LegacyName  string
 	UnicodeName string
 
-	Top         int
-	Left        int
-	Bottom      int
-	Right       int
+	Top    int
+	Left   int
+	Bottom int
+	Right  int
 
-	Channels    []Channel
-	BlendMode   string
-	Opacity     int
-	Clipping    Clipping
-	Flags       byte
-	Filter      int
+	Channels  []Channel
+	BlendMode BlendMode
+	Opacity   int
+	Clipping  Clipping
+	Flags     byte
+	Filter    int
 
-	Image       image.Image
+	Image image.Image
 }
 
 func (l Layer) Name() string {
@@ -62,6 +61,70 @@ type Channel struct {
 	Length int
 }
 
+type BlendMode string
+
+func (b BlendMode) String() string {
+	switch b {
+	case "pass":
+		return "pass through"
+	case "norm":
+		return "normal"
+	case "diss":
+		return "dissolve"
+	case "dark":
+		return "darken"
+	case "mul ":
+		return "multiply"
+	case "idiv":
+		return "color burn"
+	case "lbrn":
+		return "linear burn"
+	case "dkCl":
+		return "darker color"
+	case "lite":
+		return "lighten"
+	case "scrn":
+		return "screen"
+	case "div ":
+		return "color dodge"
+	case "lddg":
+		return "linear dodge"
+	case "lgCl":
+		return "lighter color"
+	case "over":
+		return "overlay"
+	case "sLit":
+		return "soft light"
+	case "hLit":
+		return "hard light"
+	case "vLit":
+		return "vivid light"
+	case "lLit":
+		return "linear light"
+	case "pLit":
+		return "pin light"
+	case "hMix":
+		return "hard mix"
+	case "diff":
+		return "difference"
+	case "smud":
+		return "exclusion"
+	case "fsub":
+		return "subtract"
+	case "fdiv":
+		return "divide"
+	case "hue ":
+		return "hue"
+	case "sat ":
+		return "saturation"
+	case "colr":
+		return "color"
+	case "lum ":
+		return "luminosity"
+	}
+	return ""
+}
+
 type Clipping int
 
 func (c Clipping) String() string {
@@ -75,12 +138,12 @@ func (c Clipping) String() string {
 }
 
 type Mask struct {
-	Top                int
-	Left               int
-	Bottom             int
-	Right              int
-	DefaultColor       int
-	Flags              byte
+	Top          int
+	Left         int
+	Bottom       int
+	Right        int
+	DefaultColor int
+	Flags        byte
 
 	MaskParametersFlag int
 	UserMaskDensity    int
@@ -88,14 +151,14 @@ type Mask struct {
 	VectorMaskDensity  int
 	VectorMaskFeather  float64
 
-	Padding            int
+	Padding int
 
-	RealFlags          int
-	RealBackground     int
-	RealTop            int
-	RealLeft           int
-	RealBottom         int
-	RealRight          int
+	RealFlags      int
+	RealBackground int
+	RealTop        int
+	RealLeft       int
+	RealBottom     int
+	RealRight      int
 }
 
 func Parse(r io.Reader, header *header.Header) ([]Layer, int, error) {

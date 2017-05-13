@@ -17,6 +17,10 @@ func ReadUint16(buf []byte, offset int) uint16 {
 	return binary.BigEndian.Uint16(buf[offset:offset+2])
 }
 
+func ReadInt16(buf []byte, offset int) int16 {
+	return int16(ReadUint16(buf, offset))
+}
+
 func ReadUint32(buf []byte, offset int) uint32 {
 	return binary.BigEndian.Uint32(buf[offset:offset+4])
 }
@@ -87,4 +91,14 @@ func GetSize(isPSB bool) int {
 		return 8
 	}
 	return 4
+}
+
+func Abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	if x == 0 {
+		return 0
+	}
+	return x
 }
