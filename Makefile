@@ -1,5 +1,5 @@
 bench:
-	go test -bench=BenchmarkParse >> psd.txt
+	go test -bench=BenchmarkParse >> psd-benchmark.txt
 
 trace:
 	go test -c

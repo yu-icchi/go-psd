@@ -4,14 +4,13 @@ import (
 	"github.com/yu-ichiko/go-psd/util"
 )
 
-func parseMask(buf []byte) (read int, err error) {
+func parseMask(buf []byte) (*Mask, int) {
 	size := int(util.ReadUint32(buf, 0))
-	read += 4
+	read := 4
 	if size <= 0 {
-		return
+		return nil, read
 	}
 
-	// fmt.Println("== mask", size)
 	mask := Mask{}
 
 	mask.Top = int(util.ReadUint32(buf, read))
@@ -60,6 +59,5 @@ func parseMask(buf []byte) (read int, err error) {
 		read += 4
 	}
 
-	// fmt.Printf("%+v\n", mask)
-	return
+	return &mask, read
 }

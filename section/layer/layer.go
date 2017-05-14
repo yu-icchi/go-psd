@@ -11,8 +11,7 @@ import (
 type Layer struct {
 	Index int
 
-	LegacyName  string
-	UnicodeName string
+	LegacyName string
 
 	Top    int
 	Left   int
@@ -26,14 +25,15 @@ type Layer struct {
 	Flags     byte
 	Filter    int
 
+	Mask              *Mask
+	BlendingRanges    *BlendingRanges
+	AdditionalInfoMap map[string]AdditionalInfo
+
 	Image image.Image
 }
 
 func (l Layer) Name() string {
-	if l.UnicodeName == "" {
-		return l.LegacyName
-	}
-	return l.UnicodeName
+	return l.LegacyName
 }
 
 func (l Layer) Rect() image.Rectangle {
@@ -159,6 +159,18 @@ type Mask struct {
 	RealLeft       int
 	RealBottom     int
 	RealRight      int
+}
+
+type BlendingRanges struct {
+	Black     int
+	White     int
+	DestRange int
+	Channels  []BlendingRangesChannel
+}
+
+type BlendingRangesChannel struct {
+	SourceRange      int
+	DestinationRange int
 }
 
 func Parse(r io.Reader, header *header.Header) ([]Layer, int, error) {

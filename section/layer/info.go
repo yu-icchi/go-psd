@@ -40,7 +40,7 @@ func parseInfo(r io.Reader, header *header.Header) ([]Layer, int, error) {
 		}
 		read += l
 		layer.Index = i
-		// fmt.Printf("==== record layer: %+v\n", layer)
+		//fmt.Printf("==== record layer: %+v\n", layer)
 		layers[i] = layer
 	}
 

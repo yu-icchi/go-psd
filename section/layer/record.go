@@ -57,7 +57,7 @@ func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err
 	read += l
 
 	if util.ReadString(buf, 0, 4) != "8BIM" {
-		err = errors.New("psd: invalid layer signature")
+		err = errors.New("psd: invalid blend mode signature")
 		return
 	}
 
@@ -87,17 +87,20 @@ func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err
 	}
 	read += l
 
+	var n, m int
 	// Layer mask / adjustment layer data
-	n, err := parseMask(buf)
+	layer.Mask, n = parseMask(buf)
 
 	// Layer blending ranges data
-	m, err := parseBlendingRangesData(buf[n:])
+	layer.BlendingRanges, m = parseBlendingRanges(buf[n:])
 
 	// Layer name (MBCS)
-	str, l := util.PascalString(buf, n+m)
-	layer.LegacyName = str
-	//padding := (4 - ((1 + l) % 4)) % 4
-	//fmt.Println(padding)
+	layer.LegacyName, l = util.PascalString(buf, n+m)
+	p := (4 - ((1 + l) % 4)) % 4 // padding
+
+	// Additional layer information
+	addInfo, err := parseAdditionalInfo(buf[n+m+l+p+1:], header)
+	layer.AdditionalInfoMap = addInfo
 
 	return
 }
