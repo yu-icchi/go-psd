@@ -10,38 +10,18 @@ import (
 )
 
 type PSD struct {
-	Header         Header
-	ColorModeData  ColorModeData
-	ImageResources []ImageResourcesBlock
+	Header         *Header
+	ColorModeData  *ColorModeData
+	ImageResources []*ImageResourceBlock
+	Layers         []*Layer
 }
 
-func Parse(r io.Reader) error {
+const (
+	sectionLen     = 4
+	compressionLen = 2
+	sigLen         = 4
+)
 
-	header, _, err := header.Parse(r)
-	if err != nil {
-		return err
-	}
+func newPixel(h *Header, hasAlpha bool) {
 
-	//fmt.Printf("%+v\n", header)
-
-	_, _, err = colormodedata.Parse(r, header)
-	if err != nil {
-		return err
-	}
-
-	// fmt.Printf("%+v\n", colorModeData)
-
-	_, _, err = resources.Parse(r)
-	if err != nil {
-		return err
-	}
-
-	// fmt.Println(imageResourceBlocks)
-
-	_, _, err = layer.Parse(r, header)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

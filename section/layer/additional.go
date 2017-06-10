@@ -2,6 +2,7 @@ package layer
 
 import (
 	"errors"
+	"fmt"
 	"github.com/yu-ichiko/go-psd/section/header"
 	"github.com/yu-ichiko/go-psd/util"
 )
@@ -20,6 +21,7 @@ func parseAdditionalInfo(buf []byte, header *header.Header) (map[string]Addition
 		sig := util.ReadString(buf, read, read+4)
 		read += 4
 		if sig != "8BIM" && sig != "8B64" {
+			fmt.Println(sig)
 			return info, errors.New("psd: invalid addtional layer information")
 		}
 
@@ -33,10 +35,12 @@ func parseAdditionalInfo(buf []byte, header *header.Header) (map[string]Addition
 		data := buf[read : read+count]
 		read += count
 
-		info[key] = AdditionalInfo{
+		add := AdditionalInfo{
 			Key:  key,
 			Data: data,
 		}
+		fmt.Println(add)
+		info[key] = add
 	}
 
 	return info, nil

@@ -1,13 +1,23 @@
 package pixel
 
 import (
-	"image"
 	"github.com/yu-ichiko/go-psd/section/header"
+	"image"
 )
 
 type Pixel interface {
 	image.Image
 	SetSource(top, left, bottom, right int, src ...[]byte)
+}
+
+func New(colorMode int, depth int, hasAlpha bool) Pixel {
+	switch colorMode {
+	case 0, 1:
+	case 3:
+		return newPixelRGB(depth, hasAlpha)
+	case 4:
+	}
+	return nil
 }
 
 func NewPixel(h *header.Header, hasAlpha bool) Pixel {
@@ -32,11 +42,11 @@ func newPixelRGB(depth int, hasAlpha bool) Pixel {
 			return &PixelNRGBA16{}
 		}
 		return &PixelNRGB16{}
-	//case 32:
-	//	if hasAlpha {
-	//		return &PixelNRGBA32{}
-	//	}
-	//	return &PixelNRGB32{}
+		//case 32:
+		//	if hasAlpha {
+		//		return &PixelNRGBA32{}
+		//	}
+		//	return &PixelNRGB32{}
 	}
 	return nil
 }

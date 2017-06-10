@@ -210,3 +210,7 @@ func Parse(r io.Reader) (*Header, int, error) {
 
 	return header, read, nil
 }
+
+func Decode() {
+
+}

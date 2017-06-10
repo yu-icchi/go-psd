@@ -4,6 +4,10 @@ import "errors"
 
 // header error
 var (
+	headerLens = []int{4, 2, 6, 2, 4, 4, 2, 2}
+	headerLen  = 0
+	headerSig  = []byte("8BPS")
+
 	ErrHeaderFormat    = errors.New("psd: invalid header format")
 	ErrHeaderVersion   = errors.New("psd: invalid header version")
 	ErrHeaderChannels  = errors.New("psd: invalid header channels")
@@ -11,6 +15,17 @@ var (
 	ErrHeaderWidth     = errors.New("psd: invalid header width")
 	ErrHeaderDepth     = errors.New("psd: invalid header depth")
 	ErrHeaderColorMode = errors.New("psd: invalid header colorMode")
+)
+
+const (
+	ColorModeBitmap       = ColorMode(0)
+	ColorModeGrayscale    = ColorMode(1)
+	ColorModeIndexed      = ColorMode(2)
+	ColorModeRGB          = ColorMode(3)
+	ColorModeCMYK         = ColorMode(4)
+	ColorModeMultichannel = ColorMode(7)
+	ColorModeDuotone      = ColorMode(8)
+	ColorModeLab          = ColorMode(9)
 )
 
 type Header struct {
@@ -25,17 +40,6 @@ type Header struct {
 func (h *Header) IsPSB() bool {
 	return h.Version == 2
 }
-
-var (
-	ColorModeBitmap       = ColorMode(0)
-	ColorModeGrayscale    = ColorMode(1)
-	ColorModeIndexed      = ColorMode(2)
-	ColorModeRGB          = ColorMode(3)
-	ColorModeCMYK         = ColorMode(4)
-	ColorModeMultichannel = ColorMode(7)
-	ColorModeDuotone      = ColorMode(8)
-	ColorModeLab          = ColorMode(9)
-)
 
 type ColorMode int
 
@@ -59,4 +63,10 @@ func (c ColorMode) String() string {
 		return "Lab"
 	}
 	return ""
+}
+
+func init() {
+	for _, n := range headerLens {
+		headerLen += n
+	}
 }

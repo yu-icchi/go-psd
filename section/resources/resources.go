@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 
+	"fmt"
 	"github.com/yu-ichiko/go-psd/util"
 )
 
@@ -37,8 +38,8 @@ func Parse(r io.Reader) ([]ImageResourceBlock, int, error) {
 		return nil, length, err
 	}
 
-	list := make([]ImageResourceBlock, size)
-	var read, i int
+	list := []ImageResourceBlock{}
+	var read int
 	for read < size {
 		block := ImageResourceBlock{}
 
@@ -50,21 +51,24 @@ func Parse(r io.Reader) ([]ImageResourceBlock, int, error) {
 
 		block.ID = int(util.ReadUint16(buf, read))
 		read += 2
+		fmt.Println("==========>", block.ID)
 
 		str, l := util.PascalString(buf, read)
 		read += l
+		fmt.Println("==========>", str, l)
 		block.Name = str
 
 		read += util.AdjustAlign2(l)
+
 		size := int(util.ReadUint32(buf, read))
+		fmt.Println("==========>", size)
 		read += 4
 
-		block.Data = buf[read:read+size]
+		block.Data = buf[read : read+size]
 		read += size
 		read += util.AdjustAlign2(size)
 
-		list[i] = block
-		i++
+		list = append(list, block)
 	}
 
 	return list, read + length, nil

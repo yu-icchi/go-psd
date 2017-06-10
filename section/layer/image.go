@@ -41,6 +41,7 @@ func parseChannelImageData(r io.Reader, header *header.Header, layer Layer) (ima
 		}
 
 		img[channel.ID] = imgCh
+		read += l
 	}
 
 	if len(img) <= 0 {

@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/binary"
+	"fmt"
 	"unicode/utf16"
 )
 
@@ -14,7 +15,7 @@ func ReadUint8(buf []byte, offset int) uint8 {
 }
 
 func ReadUint16(buf []byte, offset int) uint16 {
-	return binary.BigEndian.Uint16(buf[offset:offset+2])
+	return binary.BigEndian.Uint16(buf[offset : offset+2])
 }
 
 func ReadInt16(buf []byte, offset int) int16 {
@@ -22,11 +23,15 @@ func ReadInt16(buf []byte, offset int) int16 {
 }
 
 func ReadUint32(buf []byte, offset int) uint32 {
-	return binary.BigEndian.Uint32(buf[offset:offset+4])
+	return binary.BigEndian.Uint32(buf[offset : offset+4])
+}
+
+func ReadInt32(buf []byte, offset int) int32 {
+	return int32(ReadUint32(buf, offset))
 }
 
 func ReadUint64(buf []byte, offset int) uint64 {
-	return binary.BigEndian.Uint64(buf[offset:offset+8])
+	return binary.BigEndian.Uint64(buf[offset : offset+8])
 }
 
 func ReadUint(buf []byte) uint64 {
@@ -60,11 +65,12 @@ func ByteUint32(n uint32) []byte {
 
 func PascalString(buf []byte, offset int) (string, int) {
 	size := int(buf[offset])
+	fmt.Println("--------?", size)
 	if size == 0 {
 		return "", 1
 	}
 	offset += 1
-	return string(buf[offset:offset+size]), size
+	return string(buf[offset : offset+size]), size
 }
 
 func AdjustAlign2(offset int) int {

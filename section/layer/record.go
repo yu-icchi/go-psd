@@ -26,11 +26,11 @@ func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err
 	layer.Right = int(util.ReadUint32(buf, 12))
 
 	// Number of channels in the layer
-	numChannels := int(util.ReadUint16(buf, 16))
+	length := int(util.ReadUint16(buf, 16))
 
 	// Channel information
 	size := util.GetSize(header.IsPSB())
-	channels := make([]Channel, numChannels)
+	channels := make([]Channel, length)
 	for i := range channels {
 		channel := Channel{}
 
@@ -76,12 +76,12 @@ func parseRecord(r io.Reader, header *header.Header) (layer Layer, read int, err
 	if l, err = io.ReadFull(r, buf[:4]); err != nil {
 		return
 	}
-	extraLength := int(util.ReadUint32(buf, 0))
-	if extraLength <= 0 {
+	length = int(util.ReadUint32(buf, 0))
+	if length <= 0 {
 		return
 	}
 
-	buf = make([]byte, extraLength)
+	buf = make([]byte, length)
 	if l, err = io.ReadFull(r, buf); err != nil {
 		return
 	}

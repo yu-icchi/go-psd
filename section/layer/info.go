@@ -24,8 +24,7 @@ func parseInfo(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	}
 
 	// Layer count
-	buf = make([]byte, 2)
-	if l, err = io.ReadFull(r, buf); err != nil {
+	if l, err = io.ReadFull(r, buf[:2]); err != nil {
 		return nil, read, err
 	}
 	read += l
@@ -33,7 +32,8 @@ func parseInfo(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	// fmt.Println("=== info count:", count)
 
 	layers := make([]Layer, count)
-	for i := 0; i < count; i++ {
+	var i int
+	for i = 0; i < count; i++ {
 		layer, l, err := parseRecord(r, header)
 		if err != nil {
 			return nil, read, err
@@ -45,7 +45,7 @@ func parseInfo(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	}
 
 	// Channel image data
-	for i := 0; i < count; i++ {
+	for i = 0; i < count; i++ {
 		img, l, err := parseChannelImageData(r, header, layers[i])
 		if err != nil {
 			return nil, read, err

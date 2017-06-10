@@ -4,6 +4,7 @@ import (
 	"image"
 	"io"
 
+	"fmt"
 	"github.com/yu-ichiko/go-psd/section/header"
 	"github.com/yu-ichiko/go-psd/util"
 )
@@ -177,8 +178,8 @@ func Parse(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	var l, read int
 	var err error
 
-	size := util.GetSize(header.IsPSB())
-	buf := make([]byte, size)
+	intSize := util.GetSize(header.IsPSB())
+	buf := make([]byte, intSize)
 
 	// Length of the layer and mask information section
 	if l, err = io.ReadFull(r, buf); err != nil {
@@ -186,11 +187,11 @@ func Parse(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	}
 	read += l
 
-	size = int(util.ReadUint(buf))
-	if size <= 0 {
+	length := int(util.ReadUint(buf))
+	if length <= 0 {
 		return nil, read, nil
 	}
-	// fmt.Println("== size:", size)
+	fmt.Println("==> length:", length)
 
 	// Layer info
 	layers, l, err := parseInfo(r, header)
@@ -200,13 +201,29 @@ func Parse(r io.Reader, header *header.Header) ([]Layer, int, error) {
 	read += l
 
 	// Global layer mask info
-	buf = make([]byte, 4)
+	if l, err = io.ReadFull(r, buf[:4]); err != nil {
+		return nil, read, err
+	}
+	read += l
+	size := int(util.ReadUint32(buf, 0))
+	fmt.Println("===> grobal layer mask info:", size)
+	if size < 0 {
+		fmt.Println("TODO.....")
+	}
+
+	// Additional Layer Information
+	size = length + intSize - read
+	fmt.Println(length, size)
+	buf = make([]byte, size+1)
 	if l, err = io.ReadFull(r, buf); err != nil {
 		return nil, read, err
 	}
 	read += l
-	size = int(util.ReadUint32(buf, 0))
-	// fmt.Println("=== grobal layer mask info:", size)
+	fmt.Println(buf)
+	_, err = parseAdditionalInfo(buf[1:], header)
+	if err != nil {
+		return nil, read, err
+	}
 
-	return layers, 0, nil
+	return layers, length, nil
 }
