@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/png"
 	"os"
-	"strconv"
 	"testing"
 )
 
@@ -17,16 +16,23 @@ func TestDecode(t *testing.T) {
 	}
 	defer file.Close()
 
-	psd, err := Decode(file)
+	_, err = Decode(file)
 	assert.NoError(t, err)
-	for _, layer := range psd.Layers {
-		if layer.Image == nil {
-			continue
-		}
 
-		filename := "./png/" + strconv.Itoa(layer.Index) + ".png"
-		savePNG(filename, layer.Image)
-	}
+	// savePNG("./png/test.png", psd.Image)
+
+	//pp.Println(psd)
+	//for _, layer := range psd.Layers {
+	//	if layer.Image == nil {
+	//		continue
+	//	}
+	//
+	//	filename := "./png/" + strconv.Itoa(layer.Index) + ".png"
+	//	if err := savePNG(filename, layer.Image); err != nil {
+	//		t.Error(err)
+	//		t.FailNow()
+	//	}
+	//}
 }
 
 func savePNG(name string, img image.Image) error {

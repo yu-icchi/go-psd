@@ -1,9 +1,9 @@
 package pixel
 
 import (
+	"github.com/yu-ichiko/go-psd/util"
 	"image"
 	"image/color"
-	"github.com/yu-ichiko/go-psd/util"
 )
 
 type PixelNRGBA16 struct {
@@ -14,8 +14,8 @@ type PixelNRGBA16 struct {
 	A    []byte
 }
 
-func (p *PixelNRGBA16) SetSource(top, left, bottom, right int, src...[]byte) {
-	p.Rect = image.Rect(left, top, right, bottom)
+func (p *PixelNRGBA16) SetSource(rect image.Rectangle, src ...[]byte) {
+	p.Rect = rect
 	p.R = src[0]
 	p.G = src[1]
 	p.B = src[2]

@@ -1,36 +1,25 @@
 package pixel
 
 import (
-	"github.com/yu-ichiko/go-psd/section/header"
 	"image"
 )
 
 type Pixel interface {
 	image.Image
-	SetSource(top, left, bottom, right int, src ...[]byte)
+	SetSource(rect image.Rectangle, src ...[]byte)
 }
 
 func New(colorMode int, depth int, hasAlpha bool) Pixel {
 	switch colorMode {
 	case 0, 1:
 	case 3:
-		return newPixelRGB(depth, hasAlpha)
+		return NewPixelRGB(depth, hasAlpha)
 	case 4:
 	}
 	return nil
 }
 
-func NewPixel(h *header.Header, hasAlpha bool) Pixel {
-	switch h.ColorMode {
-	case header.ColorModeBitmap, header.ColorModeGrayscale:
-	case header.ColorModeRGB:
-		return newPixelRGB(h.Depth, hasAlpha)
-	case header.ColorModeCMYK:
-	}
-	return nil
-}
-
-func newPixelRGB(depth int, hasAlpha bool) Pixel {
+func NewPixelRGB(depth int, hasAlpha bool) Pixel {
 	switch depth {
 	case 8:
 		if hasAlpha {

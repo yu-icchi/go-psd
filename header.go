@@ -65,6 +65,18 @@ func (c ColorMode) String() string {
 	return ""
 }
 
+func (c ColorMode) Channels() int {
+	switch c {
+	case ColorModeBitmap, ColorModeGrayscale, ColorModeIndexed:
+		return 1
+	case ColorModeRGB:
+		return 3
+	case ColorModeCMYK:
+		return 4
+	}
+	return -1
+}
+
 func init() {
 	for _, n := range headerLens {
 		headerLen += n

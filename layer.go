@@ -33,6 +33,11 @@ type Layer struct {
 	Flags        byte
 	Filler       byte
 
+	TransparencyProtected bool
+	Visible               bool
+	Obsolete              bool
+	IrrelevantPixelData   bool
+
 	Mask            *Mask
 	BlendingRanges  *BlendingRanges
 	AdditionalInfos []*AdditionalInfo
