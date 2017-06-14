@@ -9,7 +9,7 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	file, err := os.Open("./testdata/test6.psd")
+	file, err := os.Open("./testdata/test_sample01.psd")
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
