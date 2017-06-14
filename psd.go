@@ -3,11 +3,13 @@ package psd
 import "image"
 
 type PSD struct {
-	Header         *Header
-	ColorModeData  *ColorModeData
-	ImageResources []*ImageResourceBlock
-	Layers         []*Layer
-	Image          image.Image
+	Header          *Header
+	ColorModeData   *ColorModeData
+	ImageResources  []*ImageResourceBlock
+	Layers          []*Layer
+	GlobalLayerMask *GlobalLayerMask
+	AdditionalInfos []AdditionalInfo
+	Image           image.Image
 }
 
 const (

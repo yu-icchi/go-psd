@@ -192,3 +192,6 @@ type AdditionalInfo struct {
 	Key  string
 	Data []byte
 }
+
+type GlobalLayerMask struct {
+}

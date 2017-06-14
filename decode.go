@@ -231,15 +231,18 @@ func (dec *decoder) parseLayerAndMaskInfo() ([]*Layer, error) {
 		return nil, err
 	}
 
-	fmt.Println("==>", pos-dec.read)
+	// 8bit color padding
+	padding := 4 - ((dec.read - (pos - size) - size) & 3)
+	fmt.Println(padding)
+	//err = dec.seek(padding)
+	//if err != nil {
+	//	return nil, err
+	//}
 
-	buf, err = dec.readBytes(pos - dec.read)
+	buf, err = dec.readBytes(10)
 	fmt.Println(buf, err)
 
-	// TODO: ここでパディングが必要なのか仕様書チェックをする
-	//dec.seek(1)
-	//
-	//// Global Layer Mask
+	//// Global Layer Info
 	//err = dec.parseGlobalLayerMask()
 	//if err != nil {
 	//	return nil, err
@@ -566,7 +569,6 @@ func (dec *decoder) parseImageData() (image.Image, error) {
 
 	img := map[int][]byte{}
 	for i := 0; i < 1; i++ {
-		fmt.Println("===>", i)
 		buf, err := dec.readBytes(compressionLen)
 		if err != nil {
 			return nil, err
@@ -610,7 +612,6 @@ func (dec *decoder) parseRawImageData(rect image.Rectangle) ([]byte, error) {
 
 func (dec *decoder) parseRLEImageData(rect image.Rectangle) ([]byte, error) {
 	size := rect.Dy() * 4 / 2 // TODO: PSB 4 -> 8
-	fmt.Println("---> size:", size)
 	buf, err := dec.readBytes(size)
 	if err != nil {
 		return nil, err
@@ -623,7 +624,6 @@ func (dec *decoder) parseRLEImageData(rect image.Rectangle) ([]byte, error) {
 		total += l
 		lens[i] = l
 	}
-	fmt.Println("---> total:", total)
 	buf, err = dec.readBytes(total)
 	if err != nil {
 		return nil, err
@@ -681,14 +681,14 @@ func Decode(r io.Reader) (*PSD, error) {
 
 	layers, err := dec.parseLayerAndMaskInfo()
 
-	img, err := dec.parseImageData()
+	//img, err := dec.parseImageData()
 
 	psd := &PSD{
 		Header:         dec.header,
 		ColorModeData:  colorModeData,
 		ImageResources: blocks,
 		Layers:         layers,
-		Image:          img,
+		// Image:          img,
 	}
 	return psd, nil
 }
