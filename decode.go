@@ -234,28 +234,27 @@ func (dec *decoder) parseLayerAndMaskInfo() ([]*Layer, error) {
 	// 8bit color padding
 	padding := 4 - ((dec.read - (pos - size) - size) & 3)
 	fmt.Println(padding)
-	//err = dec.seek(padding)
-	//if err != nil {
-	//	return nil, err
-	//}
+	err = dec.seek(padding)
+	if err != nil {
+		return nil, err
+	}
 
-	buf, err = dec.readBytes(10)
-	fmt.Println(buf, err)
+	if dec.header.Depth == 8 {
+		// Global Layer Info
+		err = dec.parseGlobalLayerMask()
+		if err != nil {
+			return nil, err
+		}
+	}
 
-	//// Global Layer Info
-	//err = dec.parseGlobalLayerMask()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//// Additional Layer Info
-	//for dec.read < pos {
-	//	addInfo, err := dec.parseAdditionalLayerInfo()
-	//	fmt.Println(addInfo, err)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//}
+	// Additional Layer Info
+	for dec.read < pos {
+		addInfo, err := dec.parseAdditionalLayerInfo()
+		fmt.Println(addInfo, err)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	return layers, nil
 }
@@ -491,7 +490,11 @@ func (dec *decoder) parseAdditionalLayerInfo() (*AdditionalInfo, error) {
 
 	size := int(util.ReadUint32(buf, 8))
 
+	// padding
 	if addInfo.Key == "Txt2" {
+		size += 2
+	}
+	if addInfo.Key == "LMsk" {
 		size += 2
 	}
 

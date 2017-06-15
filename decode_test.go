@@ -1,38 +1,40 @@
 package psd
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"image"
 	"image/png"
 	"os"
+	"strconv"
 	"testing"
 )
 
 func TestDecode(t *testing.T) {
-	file, err := os.Open("./testdata/test_sample02_16bit.psd")
+	file, err := os.Open("./testdata/test.psd")
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
 	defer file.Close()
 
-	_, err = Decode(file)
+	psd, err := Decode(file)
 	assert.NoError(t, err)
 
 	// savePNG("./png/test.png", psd.Image)
 
-	//pp.Println(psd)
-	//for _, layer := range psd.Layers {
-	//	if layer.Image == nil {
-	//		continue
-	//	}
-	//
-	//	filename := "./png/" + strconv.Itoa(layer.Index) + ".png"
-	//	if err := savePNG(filename, layer.Image); err != nil {
-	//		t.Error(err)
-	//		t.FailNow()
-	//	}
-	//}
+	fmt.Println(psd.Header)
+	for _, layer := range psd.Layers {
+		if layer.Image == nil {
+			continue
+		}
+
+		filename := "./png/" + strconv.Itoa(layer.Index) + ".png"
+		if err := savePNG(filename, layer.Image); err != nil {
+			t.Error(err)
+			t.FailNow()
+		}
+	}
 }
 
 func savePNG(name string, img image.Image) error {
