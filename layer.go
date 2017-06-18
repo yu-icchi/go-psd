@@ -194,4 +194,9 @@ type AdditionalInfo struct {
 }
 
 type GlobalLayerMask struct {
+	OverlayColor    int
+	ColorComponents []byte
+	Opacity         int
+	Kind            int
+	Fillers         int
 }

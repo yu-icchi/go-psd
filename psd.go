@@ -2,16 +2,6 @@ package psd
 
 import "image"
 
-type PSD struct {
-	Header          *Header
-	ColorModeData   *ColorModeData
-	ImageResources  []*ImageResourceBlock
-	Layers          []*Layer
-	GlobalLayerMask *GlobalLayerMask
-	AdditionalInfos []AdditionalInfo
-	Image           image.Image
-}
-
 const (
 	sectionLen     = 4
 	compressionLen = 2
@@ -19,6 +9,16 @@ const (
 
 	imgRAW                  = 0
 	imgRLE                  = 1
-	imgZIPWithoutPrediction = 2
+	imgZIPWithOutPrediction = 2
 	imgZIPWithPrediction    = 3
 )
+
+type PSD struct {
+	Header          *Header
+	ColorModeData   *ColorModeData
+	ImageResources  []*ImageResourceBlock
+	Layers          []*Layer
+	GlobalLayerMask *GlobalLayerMask
+	AdditionalInfos []*AdditionalInfo
+	Image           image.Image
+}

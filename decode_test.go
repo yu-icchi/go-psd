@@ -1,40 +1,37 @@
 package psd
 
 import (
-	"fmt"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"image"
 	"image/png"
 	"os"
-	"strconv"
 	"testing"
 )
 
 func TestDecode(t *testing.T) {
-	file, err := os.Open("./testdata/test.psd")
+	filename := "test"
+	file, err := os.Open("./testdata/" + filename + ".psd")
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
 	}
 	defer file.Close()
 
-	psd, err := Decode(file)
-	assert.NoError(t, err)
+	_, err = Decode(file)
+	require.NoError(t, err)
 
-	// savePNG("./png/test.png", psd.Image)
-
-	fmt.Println(psd.Header)
-	for _, layer := range psd.Layers {
-		if layer.Image == nil {
-			continue
-		}
-
-		filename := "./png/" + strconv.Itoa(layer.Index) + ".png"
-		if err := savePNG(filename, layer.Image); err != nil {
-			t.Error(err)
-			t.FailNow()
-		}
-	}
+	//savePNG("./png/" + filename + ".png", psd.Image)
+	//for _, layer := range psd.Layers {
+	//	if layer.Image == nil {
+	//		continue
+	//	}
+	//
+	//	filename := "./png/" + strconv.Itoa(layer.ID) + ".png"
+	//	if err := savePNG(filename, layer.Image); err != nil {
+	//		t.Error(err)
+	//		t.FailNow()
+	//	}
+	//}
 }
 
 func savePNG(name string, img image.Image) error {

@@ -1,6 +1,9 @@
 package psd
 
-import "errors"
+import (
+	"errors"
+	"image"
+)
 
 // header error
 var (
@@ -39,6 +42,10 @@ type Header struct {
 
 func (h *Header) IsPSB() bool {
 	return h.Version == 2
+}
+
+func (h *Header) Rect() image.Rectangle {
+	return image.Rect(0, 0, h.Width, h.Height)
 }
 
 type ColorMode int
