@@ -5,8 +5,8 @@ import (
 	"image"
 	"image/png"
 	"os"
-	"testing"
 	"strconv"
+	"testing"
 )
 
 func TestDecode(t *testing.T) {
@@ -22,7 +22,7 @@ func TestDecode(t *testing.T) {
 	require.NoError(t, err)
 
 	if psd.Image != nil {
-		savePNG("./png/" + filename + ".png", psd.Image)
+		savePNG("./png/"+filename+".png", psd.Image)
 	}
 	for _, layer := range psd.Layers {
 		if layer.Image == nil {
