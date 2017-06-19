@@ -577,7 +577,7 @@ func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
 
 		method := int(util.ReadUint16(buf, 0))
 
-		if channel.Length <= 2 {
+		if channel.Length == 2 {
 			continue
 		}
 
@@ -599,10 +599,6 @@ func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
 		case imgRLE:
 			// RLE
 			imgCh, err = dec.parseChannelImageRLE(rect)
-		case imgZIPWithOutPrediction:
-			// ZIP
-		case imgZIPWithPrediction:
-			// ZIP
 		default:
 			return nil, fmt.Errorf("psd: unknown compression method=%d", method)
 		}
@@ -661,10 +657,6 @@ func (dec *decoder) parseChannelImageRLE(rect image.Rectangle) ([]byte, error) {
 	return dest, nil
 }
 
-func (dec *decoder) parseZIPImageData(chanLen int) {
-
-}
-
 func decodePackBitsPerLine(dest []byte, buf []byte, lens []int) {
 	var l int
 	for _, ln := range lens {
@@ -697,11 +689,31 @@ func (dec *decoder) parseImageData() (image.Image, error) {
 
 	switch method {
 	case imgRAW:
+		return dec.parseImageRAW()
 	case imgRLE:
 		return dec.parseImageRLE()
+	default:
+		return nil, fmt.Errorf("psd: unknown compression method=%d", method)
+	}
+	return nil, nil
+}
+
+func (dec *decoder) parseImageRAW() (image.Image, error) {
+	size := dec.header.Width * dec.header.Height * (dec.header.Depth / 8)
+	img := make([][]byte, dec.header.Channels)
+	var err error
+
+	for i := 0; i < dec.header.Channels; i++ {
+		img[i], err = dec.readBytes(size, true)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	return nil, nil
+	p := pixel.New(int(dec.header.ColorMode), dec.header.Depth, false)
+	p.SetSource(dec.header.Rect(), img...)
+
+	return p, nil
 }
 
 func (dec *decoder) parseImageRLE() (image.Image, error) {
@@ -715,7 +727,7 @@ func (dec *decoder) parseImageRLE() (image.Image, error) {
 		lineLen[i] = int(util.ReadUint16(buf, 0))
 	}
 
-	img := map[int][]byte{}
+	img := make([][]byte, dec.header.Channels)
 	d := dec.header.Depth / 8
 	for i := 0; i < dec.header.Channels; i++ {
 		lines := []byte{}
@@ -733,7 +745,7 @@ func (dec *decoder) parseImageRLE() (image.Image, error) {
 	}
 
 	p := pixel.New(int(dec.header.ColorMode), dec.header.Depth, false)
-	p.SetSource(dec.header.Rect(), img[0], img[1], img[2])
+	p.SetSource(dec.header.Rect(), img...)
 
 	return p, nil
 }
