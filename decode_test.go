@@ -5,12 +5,12 @@ import (
 	"image"
 	"image/png"
 	"os"
-	"strconv"
 	"testing"
+	"strconv"
 )
 
 func TestDecode(t *testing.T) {
-	filename := "food-and-drinks-ui"
+	filename := "test5"
 	file, err := os.Open("./testdata/" + filename + ".psd")
 	if err != nil {
 		t.Error(err)
@@ -35,6 +35,16 @@ func TestDecode(t *testing.T) {
 			t.FailNow()
 		}
 	}
+
+	output, err := os.Create("./testdata/" + filename + "_enc.psd")
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer output.Close()
+
+	err = Encode(output, psd)
+	require.NoError(t, err)
 }
 
 func savePNG(name string, img image.Image) error {

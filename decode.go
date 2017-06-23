@@ -17,13 +17,6 @@ type decoder struct {
 	read int
 
 	header *Header
-	sections
-}
-
-type sections struct {
-	colorModeData           int
-	imageResources          int
-	layerAndMaskInformation int
 }
 
 func (dec *decoder) alloc(size int) {
@@ -226,7 +219,7 @@ func (dec *decoder) parseImageResources() (blocks []*ImageResourceBlock, err err
 			}
 		}
 
-		buf, err = dec.readBytes(4)
+		buf, err = dec.readBytes(actualLen)
 		if err != nil {
 			return nil, err
 		}

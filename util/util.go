@@ -2,8 +2,8 @@ package util
 
 import (
 	"encoding/binary"
-	"fmt"
 	"unicode/utf16"
+	"bytes"
 )
 
 func ReadString(buf []byte, offset int, limit int) string {
@@ -34,38 +34,36 @@ func ReadUint64(buf []byte, offset int) uint64 {
 	return binary.BigEndian.Uint64(buf[offset : offset+8])
 }
 
-func ReadUint(buf []byte) uint64 {
-	switch len(buf) {
-	case 2:
-		return uint64(ReadUint16(buf, 0))
-	case 4:
-		return uint64(ReadUint32(buf, 0))
-	case 8:
-		return ReadUint64(buf, 0)
-	default:
-		return 0
-	}
-}
-
 func ByteString(str string) []byte {
 	return []byte(str)
 }
 
-func ByteUint16(n uint16) []byte {
+func ByteUint16(n int) []byte {
 	b := make([]byte, 2)
-	binary.BigEndian.PutUint16(b, n)
+	binary.BigEndian.PutUint16(b, uint16(n))
 	return b
 }
 
-func ByteUint32(n uint32) []byte {
+func ByteUint32(n int) []byte {
 	b := make([]byte, 4)
-	binary.BigEndian.PutUint32(b, n)
+	binary.BigEndian.PutUint32(b, uint32(n))
 	return b
+}
+
+func BytePascalString(str string) []byte {
+	n := len(str)
+	if n == 0 {
+		return []byte{0}
+	}
+
+	buf := &bytes.Buffer{}
+	buf.Write([]byte{uint8(n)})
+	buf.Write([]byte(str))
+	return buf.Bytes()
 }
 
 func PascalString(buf []byte, offset int) (string, int) {
 	size := int(buf[offset])
-	fmt.Println("--------?", size)
 	if size == 0 {
 		return "", 1
 	}
