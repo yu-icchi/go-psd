@@ -12,8 +12,8 @@ type PixelNRGB8 struct {
 	B    []byte
 }
 
-func (p *PixelNRGB8) SetSource(top, left, bottom, right int, src ...[]byte) {
-	p.Rect = image.Rect(left, top, right, bottom)
+func (p *PixelNRGB8) SetSource(rect image.Rectangle, src ...[]byte) {
+	p.Rect = rect
 	p.R = src[0]
 	p.G = src[1]
 	p.B = src[2]
