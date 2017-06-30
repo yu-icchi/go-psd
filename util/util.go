@@ -1,9 +1,9 @@
 package util
 
 import (
+	"bytes"
 	"encoding/binary"
 	"unicode/utf16"
-	"bytes"
 )
 
 func ReadString(buf []byte, offset int, limit int) string {

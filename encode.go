@@ -2,11 +2,10 @@ package psd
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/binary"
 	"github.com/yu-ichiko/go-psd/util"
 	"io"
-	"fmt"
-	"bytes"
 )
 
 type encoder struct {
@@ -59,79 +58,93 @@ func (enc *encoder) composeHeader(h *Header) error {
 	if err := enc.writeBytes(headerSig); err != nil {
 		return err
 	}
-
 	// Version
 	if err := enc.writeUint16(h.Version); err != nil {
 		return err
 	}
-
 	// Reserved
 	if err := enc.seek(headerLens[2]); err != nil {
 		return err
 	}
-
 	// Channels
 	if err := enc.writeUint16(h.Channels); err != nil {
 		return err
 	}
-
 	// Height
 	if err := enc.writeUint32(h.Height); err != nil {
 		return err
 	}
-
 	// Width
 	if err := enc.writeUint32(h.Width); err != nil {
 		return err
 	}
-
 	// Depth
 	if err := enc.writeUint16(h.Depth); err != nil {
 		return err
 	}
-
 	// Color Mode
 	if err := enc.writeUint16(int(h.ColorMode)); err != nil {
 		return err
 	}
-
 	return nil
 }
 
 func (enc *encoder) composeColorModeData(colorMode *ColorModeData) error {
-	size := 0
+	var size int
 	if colorMode != nil {
 		size = len(colorMode.Data)
 	}
 	if err := enc.writeUint32(size); err != nil {
 		return err
 	}
-
 	if size > 0 {
-		// TODO...
+		if err := enc.writeBytes(colorMode.Data); err != nil {
+			return err
+		}
 	}
-
 	return nil
 }
 
 func (enc *encoder) composeImageResources(blocks []*ImageResourceBlock) error {
 	buf := &bytes.Buffer{}
-
+	var size int
 	for _, block := range blocks {
-		buf.Write(imgResSig)
-		buf.Write(util.ByteUint16(block.ID))
-		buf.Write(util.BytePascalString(block.Name))
-		l := len(block.Name)
-		if l == 0 {
-			l = 1
+		if _, err := buf.Write(imgResSig); err != nil {
+			return err
 		}
-		if l&1 != 0 {
-			buf.Write([]byte{0})
+		if _, err := buf.Write(util.ByteUint16(block.ID)); err != nil {
+			return err
+		}
+		if _, err := buf.Write(util.BytePascalString(block.Name)); err != nil {
+			return err
+		}
+		if size = len(block.Name); size == 0 {
+			size = 1
+		}
+		if size&1 != 0 {
+			if _, err := buf.Write([]byte{0}); err != nil {
+				return err
+			}
+		}
+		size = len(block.Data)
+		if _, err := buf.Write(util.ByteUint32(size)); err != nil {
+			return err
+		}
+		if _, err := buf.Write(block.Data); err != nil {
+			return err
+		}
+		if size&1 != 0 {
+			if _, err := buf.Write([]byte{0}); err != nil {
+				return err
+			}
 		}
 	}
-	fmt.Println(buf.Len())
-	fmt.Println(buf.Bytes())
-
+	if err := enc.writeUint32(buf.Len()); err != nil {
+		return err
+	}
+	if err := enc.writeBytes(buf.Bytes()); err != nil {
+		return err
+	}
 	return nil
 }
 

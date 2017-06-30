@@ -6,7 +6,6 @@ import (
 	"image/png"
 	"os"
 	"testing"
-	"strconv"
 )
 
 func TestDecode(t *testing.T) {
@@ -21,20 +20,20 @@ func TestDecode(t *testing.T) {
 	psd, err := Decode(file)
 	require.NoError(t, err)
 
-	if psd.Image != nil {
-		savePNG("./png/"+filename+".png", psd.Image)
-	}
-	for _, layer := range psd.Layers {
-		if layer.Image == nil {
-			continue
-		}
-
-		filename := "./png/" + strconv.Itoa(layer.ID) + ".png"
-		if err := savePNG(filename, layer.Image); err != nil {
-			t.Error(err)
-			t.FailNow()
-		}
-	}
+	//if psd.Image != nil {
+	//	savePNG("./png/"+filename+".png", psd.Image)
+	//}
+	//for _, layer := range psd.Layers {
+	//	if layer.Image == nil {
+	//		continue
+	//	}
+	//
+	//	filename := "./png/" + strconv.Itoa(layer.ID) + ".png"
+	//	if err := savePNG(filename, layer.Image); err != nil {
+	//		t.Error(err)
+	//		t.FailNow()
+	//	}
+	//}
 
 	output, err := os.Create("./testdata/" + filename + "_enc.psd")
 	if err != nil {
