@@ -422,7 +422,7 @@ func (dec *decoder) parseMask() (*Mask, error) {
 		return nil, nil
 	}
 
-	buf, err = dec.readBytes(size)
+	buf, err = dec.readBytes(size, true)
 	if err != nil {
 		return nil, err
 	}
@@ -444,13 +444,13 @@ func (dec *decoder) parseMask() (*Mask, error) {
 	mask.Flags = buf[17]
 
 	if size == 20 {
-		mask.Padding = int(util.ReadUint16(buf, 18))
+		mask.Padding = buf[18:20]
 	} else {
-		mask.RealFlags = buf[18]
+		mask.RealFlags = &buf[18]
 		if buf[19] != 0x00 && buf[19] != 0xff {
 			return nil, errors.New("psd: invalid real user mask background")
 		}
-		mask.RealBackground = buf[19]
+		mask.RealBackground = &buf[19]
 		mask.setRectEnclosingMask(
 			int(util.ReadUint32(buf, 20)),
 			int(util.ReadUint32(buf, 24)),
@@ -577,7 +577,7 @@ func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
 		var rect image.Rectangle
 		switch channel.ID {
 		case -3:
-			rect = layer.Mask.RectEnclosingMask
+			rect = *layer.Mask.RectEnclosingMask
 		case -2:
 			rect = layer.Mask.Rect
 		default:

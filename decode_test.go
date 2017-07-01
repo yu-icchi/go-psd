@@ -9,7 +9,7 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	filename := "test5"
+	filename := "mask"
 	file, err := os.Open("./testdata/" + filename + ".psd")
 	if err != nil {
 		t.Error(err)

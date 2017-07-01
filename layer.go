@@ -148,12 +148,12 @@ type Mask struct {
 
 	DefaultColor byte
 	Flags        byte
-	Padding      int
 
-	RealFlags      byte
-	RealBackground byte
+	Padding []byte
 
-	RectEnclosingMask image.Rectangle
+	RealFlags         *byte
+	RealBackground    *byte
+	RectEnclosingMask *image.Rectangle
 }
 
 func (m *Mask) setRect(top, left, bottom, right int) {
@@ -161,7 +161,8 @@ func (m *Mask) setRect(top, left, bottom, right int) {
 }
 
 func (m *Mask) setRectEnclosingMask(top, left, bottom, right int) {
-	m.RectEnclosingMask = image.Rect(left, top, right, bottom)
+	rect := image.Rect(left, top, right, bottom)
+	m.RectEnclosingMask = &rect
 }
 
 func newMask() *Mask {

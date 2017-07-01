@@ -50,16 +50,20 @@ func ByteUint32(n int) []byte {
 	return b
 }
 
-func BytePascalString(str string) []byte {
+func BytePascalString(str string) ([]byte, int, error) {
 	n := len(str)
 	if n == 0 {
-		return []byte{0}
+		return []byte{0}, 1, nil
 	}
 
 	buf := &bytes.Buffer{}
-	buf.Write([]byte{uint8(n)})
-	buf.Write([]byte(str))
-	return buf.Bytes()
+	if _, err := buf.Write([]byte{byte(n)}); err != nil {
+		return nil, n, err
+	}
+	if _, err := buf.WriteString(str); err != nil {
+		return nil, n, err
+	}
+	return buf.Bytes(), n, nil
 }
 
 func PascalString(buf []byte, offset int) (string, int) {
