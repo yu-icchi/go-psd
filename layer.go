@@ -56,7 +56,7 @@ func (l *Layer) setAdditionalInfo(addInfo *AdditionalInfo) {
 
 	// Unicode layer name
 	if addInfo.Key == "luni" {
-		l.Name = util.UnicodeString(addInfo.Data)
+		l.Name, _ = util.UnicodeString(addInfo.Data)
 	}
 
 	l.AdditionalInfos = append(l.AdditionalInfos, addInfo)

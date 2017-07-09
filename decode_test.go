@@ -9,7 +9,7 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	filename := "mask"
+	filename := "test"
 	file, err := os.Open("./testdata/" + filename + ".psd")
 	if err != nil {
 		t.Error(err)
@@ -17,7 +17,7 @@ func TestDecode(t *testing.T) {
 	}
 	defer file.Close()
 
-	psd, err := Decode(file)
+	_, err = Decode(file)
 	require.NoError(t, err)
 
 	//if psd.Image != nil {
@@ -34,16 +34,16 @@ func TestDecode(t *testing.T) {
 	//		t.FailNow()
 	//	}
 	//}
-
-	output, err := os.Create("./testdata/" + filename + "_enc.psd")
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-	defer output.Close()
-
-	err = Encode(output, psd)
-	require.NoError(t, err)
+	//
+	//output, err := os.Create("./testdata/" + filename + "_enc.psd")
+	//if err != nil {
+	//	t.Error(err)
+	//	t.FailNow()
+	//}
+	//defer output.Close()
+	//
+	//err = Encode(output, psd)
+	//require.NoError(t, err)
 }
 
 func savePNG(name string, img image.Image) error {

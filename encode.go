@@ -6,6 +6,8 @@ import (
 	"encoding/binary"
 	"github.com/yu-ichiko/go-psd/util"
 	"io"
+	"fmt"
+	"image"
 )
 
 type encoder struct {
@@ -115,17 +117,14 @@ func (enc *encoder) composeImageResources(blocks []*ImageResourceBlock) error {
 		if _, err := buf.Write(util.ByteUint16(block.ID)); err != nil {
 			return err
 		}
-		nameBuf, _, err := util.BytePascalString(block.Name)
+		nameBuf, l, err := util.BytePascalString(block.Name)
 		if err != nil {
 			return err
 		}
 		if _, err := buf.Write(nameBuf); err != nil {
 			return err
 		}
-		if size = len(block.Name); size == 0 {
-			size = 1
-		}
-		if size&1 != 0 {
+		if l&1 != 0 {
 			if _, err := buf.Write([]byte{0}); err != nil {
 				return err
 			}
@@ -158,13 +157,25 @@ func (enc *encoder) composeLayerAndMaskInfo(layers []*Layer, mask *GlobalLayerMa
 }
 
 func (enc *encoder) composeLayerInfo(layers []*Layer) error {
+	layerRecordBuf := &bytes.Buffer{}
+	channelImageBuf := &bytes.Buffer{}
+
 	for _, layer := range layers {
-		_, err := enc.composeLayerRecord(layer)
+		// Layer Record
+		buf, err := enc.composeLayerRecord(layer)
 		if err != nil {
 			return err
 		}
-		// fmt.Println("layer info ===>", buf.Bytes())
+		layerRecordBuf.Write(buf.Bytes())
+
+		// fmt.Println("==========")
+		// Channel image data
+		// enc.composeChannelImageData(layer.Image)
 	}
+
+	fmt.Println("layer record ===>", layerRecordBuf.Len())
+	fmt.Println("channel image ===>", channelImageBuf.Len())
+
 	return nil
 }
 
@@ -371,6 +382,14 @@ func (enc *encoder) composeAdditionalLayerInfo(infos []*AdditionalInfo) (*bytes.
 		}
 	}
 	return buf, nil
+}
+
+func (enc *encoder) composeChannelImageData(img image.Image) {
+	for y := 0; y < img.Bounds().Dy(); y++ {
+		for x := 0; x < img.Bounds().Dx(); x++ {
+			//r, g, b, a := img.At(x, y).RGBA()
+		}
+	}
 }
 
 func Encode(w io.Writer, psd *PSD) error {

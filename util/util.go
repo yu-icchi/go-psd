@@ -34,6 +34,19 @@ func ReadUint64(buf []byte, offset int) uint64 {
 	return binary.BigEndian.Uint64(buf[offset : offset+8])
 }
 
+func ReadUint64l(buf []byte, offset int) uint64 {
+	return binary.LittleEndian.Uint64(buf[offset:offset+8])
+}
+
+func ReadClassID(buf []byte) (string, int) {
+	size := int(ReadUint32(buf, 0))
+	if size == 0 {
+		size += 4
+	}
+	str := ReadString(buf, 4, size + 4)
+	return str, size + 4
+}
+
 func ByteString(str string) []byte {
 	return []byte(str)
 }
@@ -82,16 +95,18 @@ func AdjustAlign2(offset int) int {
 	return 0
 }
 
-func UnicodeString(buf []byte) string {
+func UnicodeString(buf []byte) (string, int) {
+	read := 4
 	size := ReadUint32(buf, 0)
 	if size == 0 {
-		return ""
+		return "", read
 	}
 	data := make([]uint16, size)
 	for i := range data {
 		data[i] = ReadUint16(buf, 4+i<<1)
+		read += 2
 	}
-	return string(utf16.Decode(data))
+	return string(utf16.Decode(data)), read
 }
 
 func GetSize(isPSB bool) int {

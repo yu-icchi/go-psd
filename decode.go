@@ -7,8 +7,8 @@ import (
 	"image"
 	"io"
 
-	"github.com/yu-ichiko/go-psd/pixel"
 	"github.com/yu-ichiko/go-psd/util"
+	"github.com/yu-ichiko/go-psd/enginedata"
 )
 
 type decoder struct {
@@ -298,13 +298,15 @@ func (dec *decoder) parseLayerInfo() ([]*Layer, error) {
 		return nil, err
 	}
 	size := int(util.ReadUint32(buf, 0))
-	size = size * 1
+	size = size * 1 // TODO: PSB is *2
+	fmt.Println("size ===>", size)
 
 	buf, err = dec.readBytes(2)
 	if err != nil {
 		return nil, err
 	}
 	count := util.Abs(int(util.ReadInt16(buf, 0)))
+	fmt.Println("count ===>", buf, count, int(util.ReadInt16(buf, 0)))
 
 	layers := make([]*Layer, count)
 	for i := 0; i < count; i++ {
@@ -555,12 +557,163 @@ func (dec *decoder) parseAdditionalLayerInfo() (*AdditionalInfo, error) {
 		return nil, err
 	}
 	addInfo.Data = buf
+	if addInfo.Key == "TySh" {
+		dec.parseTypeToolObjectSetting(buf)
+	}
 
 	return addInfo, nil
 }
 
-func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
+func (dec *decoder) parseTypeToolObjectSetting(buf []byte) {
+	read := 0
+	fmt.Println("==== type tool object setting start ====")
+	fmt.Println(buf)
+	version := util.ReadInt16(buf, read)
+	read += 2
+	fmt.Println("version:", version)
+	xx := util.ReadUint64(buf, read)
+	read += 8
+	fmt.Println("xx:", xx)
+	xy := util.ReadUint64(buf, read)
+	read += 8
+	fmt.Println("xy:", xy)
+	yx := util.ReadUint64(buf, read)
+	read += 8
+	fmt.Println("yx:", yx)
+	yy := util.ReadUint64(buf, read)
+	read += 8
+	fmt.Println("yy:", yy)
+	tx := util.ReadUint64(buf, read)
+	read += 8
+	fmt.Println("tx:", tx)
+	ty := util.ReadUint64(buf, read)
+	read += 8
+	fmt.Println("ty:", ty)
+	textVersion := util.ReadUint16(buf, read)
+	read += 2
+	fmt.Println("text version:", textVersion)
+	descriptionVersion := util.ReadUint32(buf, read)
+	read += 4
+	fmt.Println("description version", descriptionVersion)
 
+	classID, l := util.UnicodeString(buf[read:])
+	fmt.Println("unicode classID:", classID, l)
+	read += l
+	str, l := util.ReadClassID(buf[read:])
+	fmt.Println("classID:", str, l)
+	read += l
+	num := int(util.ReadUint32(buf, read))
+	fmt.Println("descriptor num ====>", num)
+	read += 4
+	for i := 0; i < num; i++ {
+		id, l := util.ReadClassID(buf[read:])
+		fmt.Println("Text data id =====>", id, l)
+		read += l
+		osTypeKey := util.ReadString(buf, read, read + 4)
+		read += 4
+		fmt.Println("osTypeKey:", osTypeKey)
+		switch osTypeKey {
+		case "TEXT":
+			value, l := util.UnicodeString(buf[read:])
+			fmt.Println("TEXT -------->", value)
+			read += l
+		case "enum":
+			id, l := util.ReadClassID(buf[read:])
+			fmt.Println("enum id ------->", id, l)
+			read += l
+			id, l = util.ReadClassID(buf[read:])
+			fmt.Println("enum value ------->", id, l)
+			read += l
+		case "long":
+			num := int(util.ReadUint32(buf, read))
+			fmt.Println("long ------->", num)
+			read += 4
+		case "tdta":
+			size := int(util.ReadUint32(buf, read))
+			fmt.Println("tdta size ------->", size)
+			read += 4
+			fmt.Println("tdta ------->", buf[read:size])
+			enginedata.Analyse(buf[read:size])
+			read += size
+		case "bool":
+			fmt.Println("bool ------->", buf[read])
+			read += 1
+		}
+	}
+
+	warpVersion := util.ReadInt16(buf, read)
+	read += 2
+	fmt.Println("warpVersion:", warpVersion)
+	descriptorVersion := util.ReadUint32(buf, read)
+	read += 4
+	fmt.Println("descriptorVersion:", descriptorVersion)
+
+	classID, l = util.UnicodeString(buf[read:])
+	fmt.Println("unicode classID:", classID, l)
+	read += l
+	str, l = util.ReadClassID(buf[read:])
+	fmt.Println("classID:", str, l)
+	read += l
+	num = int(util.ReadUint32(buf, read))
+	fmt.Println("descriptor num ====>", num)
+	read += 4
+	for i := 0; i < num; i++ {
+		id, l := util.ReadClassID(buf[read:])
+		fmt.Println("id =====>", id, l)
+		read += l
+		osTypeKey := util.ReadString(buf, read, read + 4)
+		read += 4
+		fmt.Println("osTypeKey:", osTypeKey)
+		switch osTypeKey {
+		case "TEXT":
+			value, l := util.UnicodeString(buf[read:])
+			fmt.Println("TEXT -------->", value)
+			read += l
+		case "enum":
+			id, l := util.ReadClassID(buf[read:])
+			fmt.Println("enum id ------->", id, l)
+			read += l
+			id, l = util.ReadClassID(buf[read:])
+			fmt.Println("enum value ------->", id, l)
+			read += l
+		case "long":
+			num := int(util.ReadUint32(buf, read))
+			fmt.Println("long ------->", num)
+			read += 4
+		case "tdta":
+			size := int(util.ReadUint32(buf, read))
+			fmt.Println("tdta size ------->", size)
+			read += 4
+			fmt.Println("tdta ------->", buf[read:size])
+			read += size
+		case "bool":
+			fmt.Println("bool ------->", buf[read])
+			read += 1
+		case "doub":
+			num := util.ReadUint64(buf, read)
+			fmt.Println("doub ------->", num)
+			read += 8
+		}
+	}
+
+	left := util.ReadUint32(buf, read)
+	read += 4
+	fmt.Println("left:", left)
+	top := util.ReadUint32(buf, read)
+	read += 4
+	fmt.Println("top:", top)
+	right := util.ReadUint32(buf, read)
+	read += 4
+	fmt.Println("right:", right)
+	bottom := util.ReadUint32(buf, read)
+	read += 4
+	fmt.Println("bottom:", bottom)
+
+	fmt.Println("==== type tool object setting end ====", len(buf) - read)
+}
+
+func (dec *decoder) parseChannelImageData(layer *Layer) (Image, error) {
+	var method int
 	img := map[int][]byte{}
 	for _, channel := range layer.Channels {
 		buf, err := dec.readBytes(compressionLen)
@@ -568,7 +721,7 @@ func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
 			return nil, err
 		}
 
-		method := int(util.ReadUint16(buf, 0))
+		method = int(util.ReadUint16(buf, 0))
 
 		if channel.Length == 2 {
 			continue
@@ -609,8 +762,11 @@ func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
 	}
 
 	hasAlpha := dec.header.ColorMode.Channels() < len(img)
-	p := pixel.New(int(dec.header.ColorMode), dec.header.Depth, hasAlpha)
-	p.SetSource(layer.Rect, img[0], img[1], img[2], img[-1])
+	p, err := newImage(dec.header.ColorMode, dec.header.Depth, method, hasAlpha)
+	if err != nil {
+		return nil, err
+	}
+	p.Source(layer.Rect, img[0], img[1], img[2], img[-1])
 
 	return p, nil
 }
@@ -691,7 +847,7 @@ func (dec *decoder) parseImageData() (image.Image, error) {
 	return nil, nil
 }
 
-func (dec *decoder) parseImageRAW() (image.Image, error) {
+func (dec *decoder) parseImageRAW() (Image, error) {
 	size := dec.header.Width * dec.header.Height * (dec.header.Depth / 8)
 	img := make([][]byte, dec.header.Channels)
 	var err error
@@ -703,13 +859,16 @@ func (dec *decoder) parseImageRAW() (image.Image, error) {
 		}
 	}
 
-	p := pixel.New(int(dec.header.ColorMode), dec.header.Depth, false)
-	p.SetSource(dec.header.Rect(), img...)
+	p, err := newImage(dec.header.ColorMode, dec.header.Depth, imgRAW, false)
+	if err != nil {
+		return nil, err
+	}
+	p.Source(dec.header.Rect(), img...)
 
 	return p, nil
 }
 
-func (dec *decoder) parseImageRLE() (image.Image, error) {
+func (dec *decoder) parseImageRLE() (Image, error) {
 
 	lineLen := make([]int, dec.header.Height*dec.header.Channels)
 	for i := range lineLen {
@@ -723,7 +882,7 @@ func (dec *decoder) parseImageRLE() (image.Image, error) {
 	img := make([][]byte, dec.header.Channels)
 	d := dec.header.Depth / 8
 	for i := 0; i < dec.header.Channels; i++ {
-		lines := []byte{}
+		lines := make([]byte, 0, dec.header.Height)
 		size := 0
 		for j := 0; j < dec.header.Height; j++ {
 			n := lineLen[i*dec.header.Height+j] * d
@@ -737,8 +896,11 @@ func (dec *decoder) parseImageRLE() (image.Image, error) {
 		img[i] = lines
 	}
 
-	p := pixel.New(int(dec.header.ColorMode), dec.header.Depth, false)
-	p.SetSource(dec.header.Rect(), img...)
+	p, err := newImage(dec.header.ColorMode, dec.header.Depth, imgRLE, false)
+	if err != nil {
+		return nil, err
+	}
+	p.Source(dec.header.Rect(), img...)
 
 	return p, nil
 }

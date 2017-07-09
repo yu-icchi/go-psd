@@ -22,7 +22,7 @@ var (
 
 const (
 	ColorModeBitmap       = ColorMode(0)
-	ColorModeGrayscale    = ColorMode(1)
+	ColorModeGrayScale    = ColorMode(1)
 	ColorModeIndexed      = ColorMode(2)
 	ColorModeRGB          = ColorMode(3)
 	ColorModeCMYK         = ColorMode(4)
@@ -54,7 +54,7 @@ func (c ColorMode) String() string {
 	switch c {
 	case ColorModeBitmap:
 		return "Bitmap"
-	case ColorModeGrayscale:
+	case ColorModeGrayScale:
 		return "Grayscale"
 	case ColorModeIndexed:
 		return "Indexed"
@@ -74,7 +74,7 @@ func (c ColorMode) String() string {
 
 func (c ColorMode) Channels() int {
 	switch c {
-	case ColorModeBitmap, ColorModeGrayscale, ColorModeIndexed:
+	case ColorModeBitmap, ColorModeGrayScale, ColorModeIndexed:
 		return 1
 	case ColorModeRGB:
 		return 3
