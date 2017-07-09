@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/binary"
-	"github.com/yu-ichiko/go-psd/util"
-	"io"
 	"fmt"
+	"github.com/yu-ichiko/go-psd/util"
 	"image"
+	"io"
 )
 
 type encoder struct {

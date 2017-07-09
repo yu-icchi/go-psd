@@ -1,8 +1,8 @@
 package psd
 
 import (
-	"image"
 	"fmt"
+	"image"
 
 	psdImage "github.com/yu-ichiko/go-psd/image"
 )

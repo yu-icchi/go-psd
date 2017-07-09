@@ -35,7 +35,7 @@ func ReadUint64(buf []byte, offset int) uint64 {
 }
 
 func ReadUint64l(buf []byte, offset int) uint64 {
-	return binary.LittleEndian.Uint64(buf[offset:offset+8])
+	return binary.LittleEndian.Uint64(buf[offset : offset+8])
 }
 
 func ReadClassID(buf []byte) (string, int) {
@@ -43,7 +43,7 @@ func ReadClassID(buf []byte) (string, int) {
 	if size == 0 {
 		size += 4
 	}
-	str := ReadString(buf, 4, size + 4)
+	str := ReadString(buf, 4, size+4)
 	return str, size + 4
 }
 

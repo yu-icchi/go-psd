@@ -7,8 +7,8 @@ import (
 	"image"
 	"io"
 
-	"github.com/yu-ichiko/go-psd/util"
 	"github.com/yu-ichiko/go-psd/enginedata"
+	"github.com/yu-ichiko/go-psd/util"
 )
 
 type decoder struct {
@@ -609,7 +609,7 @@ func (dec *decoder) parseTypeToolObjectSetting(buf []byte) {
 		id, l := util.ReadClassID(buf[read:])
 		fmt.Println("Text data id =====>", id, l)
 		read += l
-		osTypeKey := util.ReadString(buf, read, read + 4)
+		osTypeKey := util.ReadString(buf, read, read+4)
 		read += 4
 		fmt.Println("osTypeKey:", osTypeKey)
 		switch osTypeKey {
@@ -661,7 +661,7 @@ func (dec *decoder) parseTypeToolObjectSetting(buf []byte) {
 		id, l := util.ReadClassID(buf[read:])
 		fmt.Println("id =====>", id, l)
 		read += l
-		osTypeKey := util.ReadString(buf, read, read + 4)
+		osTypeKey := util.ReadString(buf, read, read+4)
 		read += 4
 		fmt.Println("osTypeKey:", osTypeKey)
 		switch osTypeKey {
@@ -709,7 +709,7 @@ func (dec *decoder) parseTypeToolObjectSetting(buf []byte) {
 	read += 4
 	fmt.Println("bottom:", bottom)
 
-	fmt.Println("==== type tool object setting end ====", len(buf) - read)
+	fmt.Println("==== type tool object setting end ====", len(buf)-read)
 }
 
 func (dec *decoder) parseChannelImageData(layer *Layer) (Image, error) {
