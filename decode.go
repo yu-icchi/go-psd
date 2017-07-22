@@ -7,6 +7,7 @@ import (
 	"image"
 	"io"
 
+	"encoding/json"
 	"github.com/yu-ichiko/go-psd/enginedata"
 	"github.com/yu-ichiko/go-psd/util"
 )
@@ -632,8 +633,9 @@ func (dec *decoder) parseTypeToolObjectSetting(buf []byte) {
 			size := int(util.ReadUint32(buf, read))
 			fmt.Println("tdta size ------->", size)
 			read += 4
-			fmt.Println("tdta ------->", buf[read:size])
-			enginedata.Analyse(buf[read:size])
+			data, _ := enginedata.Decode(buf[read : read+size])
+			jb, _ := json.Marshal(data)
+			fmt.Println("tdta ------->", string(jb))
 			read += size
 		case "bool":
 			fmt.Println("bool ------->", buf[read])
