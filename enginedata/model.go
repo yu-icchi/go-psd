@@ -9,12 +9,13 @@ type EngineData struct {
 // EngineDict
 
 type EngineDict struct {
-	AntiAlias    int
-	Editor       Editor
-	GridInfo     GridInfo
-	ParagraphRun ParagraphRun
-	Rendered     Rendered
-	StyleRun     StyleRun
+	AntiAlias                int
+	Editor                   Editor
+	GridInfo                 GridInfo
+	ParagraphRun             ParagraphRun
+	Rendered                 Rendered
+	StyleRun                 StyleRun
+	UseFractionalGlyphWidths bool
 }
 
 type Editor struct {
@@ -109,12 +110,30 @@ type Lines struct {
 
 type StyleRun struct {
 	DefaultRunData interface{} // todo
+	//StyleSheet struct {
+	//	StyleSheetData struct {
+	//	} `json:"StyleSheetData"`
+	//} `json:"StyleSheet"`
 	IsJoinable     int
+	RunArray       []RunArray // todo
+	RunLengthArray []int
 }
 
 // ResourceDict
 
 type ResourceDict struct {
+	FontSet                 []FontSet
+	KinsokuSet              []KinsokuSet
+	MojiKumiSet             MojiKumiSet
+	ParagraphSheetSet       []ParagraphSheetSet
+	SmallCapSize            float64
+	StyleSheetSet           []StyleSheetSet
+	SubscriptPosition       float64
+	SubscriptSize           float64
+	SuperscriptPosition     float64
+	SuperscriptSize         float64
+	TheNormalParagraphSheet int
+	TheNormalStyleSheet     int
 }
 
 // DocumentResources

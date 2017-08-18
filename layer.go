@@ -1,7 +1,8 @@
 package psd
 
 import (
-	"github.com/yu-ichiko/go-psd/util"
+	"fmt"
+	"github.com/yu-ichiko/go-psd/additional"
 	"image"
 )
 
@@ -49,14 +50,24 @@ func (l *Layer) setRect(top, left, bottom, right int) {
 
 func (l *Layer) setAdditionalInfo(addInfo *AdditionalInfo) {
 
+	fmt.Println("-->", addInfo.Key)
+
 	// Layer ID
 	if addInfo.Key == "lyid" {
-		l.ID = int(util.ReadUint32(addInfo.Data, 0))
+		additional.NewLayerID(addInfo.Data)
+	}
+
+	if addInfo.Key == "lnsr" {
+		fmt.Println(additional.NewLayerNameSource(addInfo.Data))
 	}
 
 	// Unicode layer name
 	if addInfo.Key == "luni" {
-		l.Name, _ = util.UnicodeString(addInfo.Data)
+		additional.NewLayerName(addInfo.Data)
+	}
+
+	if addInfo.Key == "artb" {
+		additional.NewArtboard(addInfo.Data)
 	}
 
 	l.AdditionalInfos = append(l.AdditionalInfos, addInfo)

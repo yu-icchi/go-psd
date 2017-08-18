@@ -9,24 +9,24 @@ import (
 	"testing"
 )
 
-func TestDecode(t *testing.T) {
+func TestParser(t *testing.T) {
 	file, err := ioutil.ReadFile("./testdata/enginedata")
 	require.NoError(t, err)
 
-	data, err := Decode(file)
+	data, err := Parser(file)
 	assert.NoError(t, err)
 	jsonByte, err := json.Marshal(data)
 	assert.NoError(t, err)
 	fmt.Println(string(jsonByte))
 }
 
-func BenchmarkDecode(b *testing.B) {
+func BenchmarkParser(b *testing.B) {
 	file, _ := ioutil.ReadFile("./testdata/enginedata")
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		Decode(file)
+		Parser(file)
 	}
 }

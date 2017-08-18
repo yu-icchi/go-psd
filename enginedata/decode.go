@@ -10,10 +10,7 @@ import (
 )
 
 var (
-	hashStart           = regexp.MustCompile(`^<<$`)
-	hashEnd             = regexp.MustCompile(`^>>$`)
 	multiLineArrayStart = regexp.MustCompile(`^\/([a-zA-Z0-9]+) \[$`)
-	multiLineArrayEnd   = regexp.MustCompile(`^\]$`)
 	property            = regexp.MustCompile(`^\/([a-zA-Z0-9]+)$`)
 	propertyWithData    = regexp.MustCompile(`^\/([a-zA-Z0-9]+) (.*)$`)
 	singleLineArray     = regexp.MustCompile(`^\[(.*)\]$`)
@@ -21,14 +18,16 @@ var (
 	number              = regexp.MustCompile(`^(-?\d+)$`)
 	numberWithDecimal   = regexp.MustCompile(`^(-?\d*)\.(\d+)$`)
 	strRegexp           = regexp.MustCompile(`^\((.*)\)$`)
-
-	crlf  = regexp.MustCompile(`\r\n|\r|\n|\f`)
-	tab   = []byte("\t")
-	null  = []byte("")
-	space = []byte(" ")
+	crlf                = regexp.MustCompile(`\r\n|\r|\n|\f`)
+	tab                 = []byte("\t")
+	null                = []byte("")
+	space               = []byte(" ")
+	hashStart           = []byte("<<")
+	hashEnd             = []byte(">>")
+	multiLineArrayEnd   = []byte("]")
 )
 
-func Decode(buf []byte) (interface{}, error) {
+func Parser(buf []byte) (interface{}, error) {
 	d := newDecoder()
 	scanner := bufio.NewScanner(bytes.NewReader(buf))
 	for scanner.Scan() {
@@ -104,15 +103,15 @@ func (d *decoder) setCurrent(key string, value interface{}) {
 func (d *decoder) parse(buf []byte) (interface{}, error) {
 	buf = bytes.TrimSpace(buf)
 	switch {
-	case hashStart.Match(buf):
+	case bytes.Equal(buf, hashStart):
 		d.pushStack(object{})
-	case hashEnd.Match(buf):
+	case bytes.Equal(buf, hashEnd):
 		d.popStack()
 	case multiLineArrayStart.Match(buf):
 		data := multiLineArrayStart.FindSubmatch(buf)
 		d.pushKeyStack(string(data[1]))
 		d.pushStack(array{})
-	case multiLineArrayEnd.Match(buf):
+	case bytes.Equal(buf, multiLineArrayEnd):
 		d.popStack()
 	case property.Match(buf):
 		data := property.FindSubmatch(buf)

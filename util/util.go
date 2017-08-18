@@ -3,6 +3,8 @@ package util
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
+	"math"
 	"unicode/utf16"
 )
 
@@ -30,18 +32,29 @@ func ReadInt32(buf []byte, offset int) int32 {
 	return int32(ReadUint32(buf, offset))
 }
 
+func ReadInt64(buf []byte, offset int) int64 {
+	return int64(ReadUint64(buf, offset))
+}
+
 func ReadUint64(buf []byte, offset int) uint64 {
 	return binary.BigEndian.Uint64(buf[offset : offset+8])
 }
 
-func ReadUint64l(buf []byte, offset int) uint64 {
-	return binary.LittleEndian.Uint64(buf[offset : offset+8])
+func ReadFloat32(buf []byte, offset int) float32 {
+	bits := binary.BigEndian.Uint32(buf[offset : offset+4])
+	return math.Float32frombits(bits)
+}
+
+func ReadFloat64(buf []byte, offset int) float64 {
+	bits := binary.BigEndian.Uint64(buf[offset : offset+8])
+	return math.Float64frombits(bits)
 }
 
 func ReadClassID(buf []byte) (string, int) {
-	size := int(ReadUint32(buf, 0))
+	size := int(ReadInt32(buf, 0))
+	fmt.Println(size)
 	if size == 0 {
-		size += 4
+		size = 4
 	}
 	str := ReadString(buf, 4, size+4)
 	return str, size + 4
@@ -97,7 +110,8 @@ func AdjustAlign2(offset int) int {
 
 func UnicodeString(buf []byte) (string, int) {
 	read := 4
-	size := ReadUint32(buf, 0)
+	size := int(ReadInt32(buf, 0))
+	fmt.Println("----->", size)
 	if size == 0 {
 		return "", read
 	}
