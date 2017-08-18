@@ -3,4 +3,6 @@ import:
 - package: github.com/stretchr/testify
   subpackages:
   - assert
+  - require
+testImport:
 - package: gopkg.in/yaml.v2

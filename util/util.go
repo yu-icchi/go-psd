@@ -1,8 +1,10 @@
 package util
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
+	"math"
 	"unicode/utf16"
 )
 
@@ -30,42 +32,68 @@ func ReadInt32(buf []byte, offset int) int32 {
 	return int32(ReadUint32(buf, offset))
 }
 
+func ReadInt64(buf []byte, offset int) int64 {
+	return int64(ReadUint64(buf, offset))
+}
+
 func ReadUint64(buf []byte, offset int) uint64 {
 	return binary.BigEndian.Uint64(buf[offset : offset+8])
 }
 
-func ReadUint(buf []byte) uint64 {
-	switch len(buf) {
-	case 2:
-		return uint64(ReadUint16(buf, 0))
-	case 4:
-		return uint64(ReadUint32(buf, 0))
-	case 8:
-		return ReadUint64(buf, 0)
-	default:
-		return 0
+func ReadFloat32(buf []byte, offset int) float32 {
+	bits := binary.BigEndian.Uint32(buf[offset : offset+4])
+	return math.Float32frombits(bits)
+}
+
+func ReadFloat64(buf []byte, offset int) float64 {
+	bits := binary.BigEndian.Uint64(buf[offset : offset+8])
+	return math.Float64frombits(bits)
+}
+
+func ReadClassID(buf []byte) (string, int) {
+	size := int(ReadInt32(buf, 0))
+	fmt.Println(size)
+	if size == 0 {
+		size = 4
 	}
+	str := ReadString(buf, 4, size+4)
+	return str, size + 4
 }
 
 func ByteString(str string) []byte {
 	return []byte(str)
 }
 
-func ByteUint16(n uint16) []byte {
+func ByteUint16(n int) []byte {
 	b := make([]byte, 2)
-	binary.BigEndian.PutUint16(b, n)
+	binary.BigEndian.PutUint16(b, uint16(n))
 	return b
 }
 
-func ByteUint32(n uint32) []byte {
+func ByteUint32(n int) []byte {
 	b := make([]byte, 4)
-	binary.BigEndian.PutUint32(b, n)
+	binary.BigEndian.PutUint32(b, uint32(n))
 	return b
+}
+
+func BytePascalString(str string) ([]byte, int, error) {
+	n := len(str)
+	if n == 0 {
+		return []byte{0}, 1, nil
+	}
+
+	buf := &bytes.Buffer{}
+	if _, err := buf.Write([]byte{byte(n)}); err != nil {
+		return nil, n, err
+	}
+	if _, err := buf.WriteString(str); err != nil {
+		return nil, n, err
+	}
+	return buf.Bytes(), n, nil
 }
 
 func PascalString(buf []byte, offset int) (string, int) {
 	size := int(buf[offset])
-	fmt.Println("--------?", size)
 	if size == 0 {
 		return "", 1
 	}
@@ -80,16 +108,19 @@ func AdjustAlign2(offset int) int {
 	return 0
 }
 
-func UnicodeString(buf []byte) string {
-	size := ReadUint32(buf, 0)
+func UnicodeString(buf []byte) (string, int) {
+	read := 4
+	size := int(ReadInt32(buf, 0))
+	fmt.Println("----->", size)
 	if size == 0 {
-		return ""
+		return "", read
 	}
 	data := make([]uint16, size)
 	for i := range data {
 		data[i] = ReadUint16(buf, 4+i<<1)
+		read += 2
 	}
-	return string(utf16.Decode(data))
+	return string(utf16.Decode(data)), read
 }
 
 func GetSize(isPSB bool) int {

@@ -1,6 +1,7 @@
 package psd
 
 import (
+	"github.com/k0kubun/pp"
 	"github.com/stretchr/testify/require"
 	"image"
 	"image/png"
@@ -10,7 +11,7 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	filename := "food-and-drinks-ui"
+	filename := "mask"
 	file, err := os.Open("./testdata/" + filename + ".psd")
 	if err != nil {
 		t.Error(err)
@@ -28,6 +29,7 @@ func TestDecode(t *testing.T) {
 		if layer.Image == nil {
 			continue
 		}
+		pp.Println(layer.AdditionalInfos)
 
 		filename := "./png/" + strconv.Itoa(layer.ID) + ".png"
 		if err := savePNG(filename, layer.Image); err != nil {
@@ -35,6 +37,16 @@ func TestDecode(t *testing.T) {
 			t.FailNow()
 		}
 	}
+
+	//output, err := os.Create("./testdata/" + filename + "_enc.psd")
+	//if err != nil {
+	//	t.Error(err)
+	//	t.FailNow()
+	//}
+	//defer output.Close()
+
+	//err = Encode(output, psd)
+	//require.NoError(t, err)
 }
 
 func savePNG(name string, img image.Image) error {
@@ -70,3 +82,6 @@ func BenchmarkDecode(b *testing.B) {
 		Decode(file)
 	}
 }
+
+// 943,868,237
+// 943868237

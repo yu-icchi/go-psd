@@ -7,7 +7,6 @@ import (
 	"image"
 	"io"
 
-	"github.com/yu-ichiko/go-psd/pixel"
 	"github.com/yu-ichiko/go-psd/util"
 )
 
@@ -17,13 +16,6 @@ type decoder struct {
 	read int
 
 	header *Header
-	sections
-}
-
-type sections struct {
-	colorModeData           int
-	imageResources          int
-	layerAndMaskInformation int
 }
 
 func (dec *decoder) alloc(size int) {
@@ -159,6 +151,7 @@ func (dec *decoder) parseHeader() error {
 	dec.header.ColorMode = ColorMode(util.ReadUint16(buf, read))
 	read += headerLens[7]
 
+	fmt.Println(dec.header)
 	return nil
 }
 
@@ -226,7 +219,7 @@ func (dec *decoder) parseImageResources() (blocks []*ImageResourceBlock, err err
 			}
 		}
 
-		buf, err = dec.readBytes(4)
+		buf, err = dec.readBytes(actualLen)
 		if err != nil {
 			return nil, err
 		}
@@ -272,10 +265,12 @@ func (dec *decoder) parseLayerAndMaskInfo() ([]*Layer, *GlobalLayerMask, []*Addi
 	}
 
 	// padding
-	if padding := (dec.read - s + 4 - size) & 3; padding > 0 {
-		err = dec.seek(4 - padding)
-		if err != nil {
-			return nil, nil, nil, err
+	if dec.header.Depth == 8 {
+		if padding := (dec.read - s + 4 - size) & 3; padding > 0 {
+			err = dec.seek(4 - padding)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 		}
 	}
 
@@ -305,7 +300,7 @@ func (dec *decoder) parseLayerInfo() ([]*Layer, error) {
 		return nil, err
 	}
 	size := int(util.ReadUint32(buf, 0))
-	size = size * 1
+	size = size * 1 // TODO: PSB is *2
 
 	buf, err = dec.readBytes(2)
 	if err != nil {
@@ -429,7 +424,7 @@ func (dec *decoder) parseMask() (*Mask, error) {
 		return nil, nil
 	}
 
-	buf, err = dec.readBytes(size)
+	buf, err = dec.readBytes(size, true)
 	if err != nil {
 		return nil, err
 	}
@@ -451,13 +446,13 @@ func (dec *decoder) parseMask() (*Mask, error) {
 	mask.Flags = buf[17]
 
 	if size == 20 {
-		mask.Padding = int(util.ReadUint16(buf, 18))
+		mask.Padding = buf[18:20]
 	} else {
-		mask.RealFlags = buf[18]
+		mask.RealFlags = &buf[18]
 		if buf[19] != 0x00 && buf[19] != 0xff {
 			return nil, errors.New("psd: invalid real user mask background")
 		}
-		mask.RealBackground = buf[19]
+		mask.RealBackground = &buf[19]
 		mask.setRectEnclosingMask(
 			int(util.ReadUint32(buf, 20)),
 			int(util.ReadUint32(buf, 24)),
@@ -474,12 +469,13 @@ func (dec *decoder) parseGlobalLayerMask() (*GlobalLayerMask, error) {
 	if err != nil {
 		return nil, err
 	}
-	size := int(util.ReadUint32(buf, 0))
+	size := util.ReadUint32(buf, 0)
+	fmt.Println("->", size)
 	if size <= 0 {
 		return nil, nil
 	}
 
-	buf, err = dec.readBytes(size)
+	buf, err = dec.readBytes(int(size))
 	if err != nil {
 		return nil, err
 	}
@@ -546,7 +542,7 @@ func (dec *decoder) parseAdditionalLayerInfo() (*AdditionalInfo, error) {
 
 	size := int(util.ReadUint32(buf, 8))
 
-	// padding
+	// FIXME: padding?
 	switch addInfo.Key {
 	case "Txt2":
 		if size%2 == 1 {
@@ -566,8 +562,8 @@ func (dec *decoder) parseAdditionalLayerInfo() (*AdditionalInfo, error) {
 	return addInfo, nil
 }
 
-func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
-
+func (dec *decoder) parseChannelImageData(layer *Layer) (Image, error) {
+	var method int
 	img := map[int][]byte{}
 	for _, channel := range layer.Channels {
 		buf, err := dec.readBytes(compressionLen)
@@ -575,7 +571,7 @@ func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
 			return nil, err
 		}
 
-		method := int(util.ReadUint16(buf, 0))
+		method = int(util.ReadUint16(buf, 0))
 
 		if channel.Length == 2 {
 			continue
@@ -584,7 +580,7 @@ func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
 		var rect image.Rectangle
 		switch channel.ID {
 		case -3:
-			rect = layer.Mask.RectEnclosingMask
+			rect = *layer.Mask.RectEnclosingMask
 		case -2:
 			rect = layer.Mask.Rect
 		default:
@@ -616,8 +612,11 @@ func (dec *decoder) parseChannelImageData(layer *Layer) (image.Image, error) {
 	}
 
 	hasAlpha := dec.header.ColorMode.Channels() < len(img)
-	p := pixel.New(int(dec.header.ColorMode), dec.header.Depth, hasAlpha)
-	p.SetSource(layer.Rect, img[0], img[1], img[2], img[-1])
+	p, err := newImage(dec.header.ColorMode, dec.header.Depth, method, hasAlpha)
+	if err != nil {
+		return nil, err
+	}
+	p.Source(layer.Rect, img[0], img[1], img[2], img[-1])
 
 	return p, nil
 }
@@ -698,7 +697,7 @@ func (dec *decoder) parseImageData() (image.Image, error) {
 	return nil, nil
 }
 
-func (dec *decoder) parseImageRAW() (image.Image, error) {
+func (dec *decoder) parseImageRAW() (Image, error) {
 	size := dec.header.Width * dec.header.Height * (dec.header.Depth / 8)
 	img := make([][]byte, dec.header.Channels)
 	var err error
@@ -710,13 +709,16 @@ func (dec *decoder) parseImageRAW() (image.Image, error) {
 		}
 	}
 
-	p := pixel.New(int(dec.header.ColorMode), dec.header.Depth, false)
-	p.SetSource(dec.header.Rect(), img...)
+	p, err := newImage(dec.header.ColorMode, dec.header.Depth, imgRAW, false)
+	if err != nil {
+		return nil, err
+	}
+	p.Source(dec.header.Rect(), img...)
 
 	return p, nil
 }
 
-func (dec *decoder) parseImageRLE() (image.Image, error) {
+func (dec *decoder) parseImageRLE() (Image, error) {
 
 	lineLen := make([]int, dec.header.Height*dec.header.Channels)
 	for i := range lineLen {
@@ -730,7 +732,7 @@ func (dec *decoder) parseImageRLE() (image.Image, error) {
 	img := make([][]byte, dec.header.Channels)
 	d := dec.header.Depth / 8
 	for i := 0; i < dec.header.Channels; i++ {
-		lines := []byte{}
+		lines := make([]byte, 0, dec.header.Height)
 		size := 0
 		for j := 0; j < dec.header.Height; j++ {
 			n := lineLen[i*dec.header.Height+j] * d
@@ -744,8 +746,11 @@ func (dec *decoder) parseImageRLE() (image.Image, error) {
 		img[i] = lines
 	}
 
-	p := pixel.New(int(dec.header.ColorMode), dec.header.Depth, false)
-	p.SetSource(dec.header.Rect(), img...)
+	p, err := newImage(dec.header.ColorMode, dec.header.Depth, imgRLE, false)
+	if err != nil {
+		return nil, err
+	}
+	p.Source(dec.header.Rect(), img...)
 
 	return p, nil
 }
@@ -761,30 +766,33 @@ func Decode(r io.Reader) (*PSD, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(colorModeData)
 
 	blocks, err := dec.parseImageResources()
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(blocks)
 
 	layers, globalMask, addInfos, err := dec.parseLayerAndMaskInfo()
 	if err != nil {
 		return nil, err
 	}
-
-	img, err := dec.parseImageData()
-	if err != nil {
-		return nil, err
-	}
+	fmt.Println(layers, globalMask, addInfos)
+	//
+	//img, err := dec.parseImageData()
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	psd := &PSD{
-		Header:          dec.header,
-		ColorModeData:   colorModeData,
-		ImageResources:  blocks,
-		Layers:          layers,
-		GlobalLayerMask: globalMask,
-		AdditionalInfos: addInfos,
-		Image:           img,
+		Header:        dec.header,
+		ColorModeData: colorModeData,
+		//ImageResources:  blocks,
+		//Layers:          layers,
+		//GlobalLayerMask: globalMask,
+		//AdditionalInfos: addInfos,
+		//Image:           img,
 	}
 	return psd, nil
 }
