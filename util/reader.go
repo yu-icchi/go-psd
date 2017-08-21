@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"encoding/binary"
+	"math"
 	"unicode/utf16"
 )
 
@@ -34,6 +35,14 @@ func (r *Reader) ReadBytes(num interface{}) ([]byte, error) {
 	return value, nil
 }
 
+func (r *Reader) ReadBoolean() (bool, error) {
+	b, err := r.ReadByte()
+	if err != nil {
+		return false, err
+	}
+	return b != 0, nil
+}
+
 func (r *Reader) ReadString(n int) (string, error) {
 	value := make([]byte, n)
 	if err := binary.Read(r.buf, binary.BigEndian, &value); err != nil {
@@ -41,6 +50,22 @@ func (r *Reader) ReadString(n int) (string, error) {
 	}
 	r.pos += int64(n)
 	return string(value), nil
+}
+
+func (r *Reader) ReadInt8() (int8, error) {
+	var value int8
+	if err := binary.Read(r.buf, binary.BigEndian, &value); err != nil {
+		return 0, err
+	}
+	return value, nil
+}
+
+func (r *Reader) ReadUInt8() (uint8, error) {
+	var value uint8
+	if err := binary.Read(r.buf, binary.BigEndian, &value); err != nil {
+		return 0, err
+	}
+	return value, nil
 }
 
 func (r *Reader) ReadInt16() (int16, error) {
@@ -183,6 +208,18 @@ func (r *Reader) Skip(n interface{}) error {
 		return err
 	}
 	return nil
+}
+
+func (r *Reader) ReadPathNumber() (float64, error) {
+	n, err := r.ReadByte()
+	if err != nil {
+		return 0, err
+	}
+	num, err := r.ReadInt24()
+	if err != nil {
+		return 0, err
+	}
+	return float64(n) + (float64(num) / math.Pow(2, 24)), nil
 }
 
 func integer(num interface{}) int {

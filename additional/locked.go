@@ -9,15 +9,19 @@ type Locked struct {
 	All          bool
 }
 
-func ParseLocked(buf []byte) Locked {
-	locked := int(util.ReadUint32(buf, 0))
+func NewLocked(buf []byte) (*Locked, error) {
+	reader := util.NewReader(buf)
+	locked, err := reader.ReadInt32()
+	if err != nil {
+		return nil, err
+	}
 	transparency := (locked&(0x01<<0)) > 0 || locked == -2147483648
 	composite := (locked&(0x01<<1)) > 0 || locked == -2147483648
 	position := (locked&(0x01<<2)) > 0 || locked == -2147483648
-	return Locked{
+	return &Locked{
 		Transparency: transparency,
 		Composite:    composite,
 		Position:     position,
 		All:          transparency && composite && position,
-	}
+	}, nil
 }

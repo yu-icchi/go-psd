@@ -1,6 +1,7 @@
 package descriptor
 
 import (
+	"fmt"
 	"github.com/yu-ichiko/go-psd/enginedata"
 	"github.com/yu-ichiko/go-psd/util"
 )
@@ -11,30 +12,60 @@ type (
 		Class string
 		Items map[string]*Item
 	}
+
 	Item struct {
 		Key   string
 		Type  string
 		Value interface{}
 	}
+
 	Reference struct{}
-	Double    float64
+
+	Double float64
+
 	UnitFloat struct {
 		Type  string
 		Value float64
 	}
-	Text       string
+
+	Text string
+
 	Enumerated struct {
 		Type  string
 		Value string
 	}
-	Integer      int
+
+	Integer int
+
 	LargeInteger int64
-	Boolean      bool
-	Class        struct {
+
+	Boolean bool
+
+	Class struct {
 		Name string
 		ID   string
 	}
+
 	Alias string
+
+	Property struct {
+		Name string
+		ID   string
+		Key  string
+	}
+
+	ReferenceEnum struct {
+		Name string
+		ID   string
+		Type string
+		Enum string
+	}
+
+	Offset struct {
+		Name  string
+		ID    string
+		Value int32
+	}
 )
 
 func (t Text) String() string {
@@ -49,7 +80,7 @@ func (i Integer) Integer() int {
 	return int(i)
 }
 
-func Parser(reader *util.Reader) (*Descriptor, error) {
+func Parse(reader *util.Reader) (*Descriptor, error) {
 	var err error
 
 	obj := &Descriptor{}
@@ -68,7 +99,7 @@ func Parser(reader *util.Reader) (*Descriptor, error) {
 
 	items := map[string]*Item{}
 	for i := 0; i < num; i++ {
-		item, err := parseItem(reader)
+		item, err := parseItem(reader, true)
 		if err != nil {
 			return nil, err
 		}
@@ -79,13 +110,15 @@ func Parser(reader *util.Reader) (*Descriptor, error) {
 	return obj, nil
 }
 
-func parseItem(reader *util.Reader) (*Item, error) {
+func parseItem(reader *util.Reader, isKey bool) (*Item, error) {
 	var err error
 
 	item := &Item{}
-	item.Key, err = reader.ReadDynamicString()
-	if err != nil {
-		return nil, err
+	if isKey {
+		item.Key, err = reader.ReadDynamicString()
+		if err != nil {
+			return nil, err
+		}
 	}
 	item.Type, err = reader.ReadString(4)
 	if err != nil {
@@ -98,17 +131,80 @@ func parseItem(reader *util.Reader) (*Item, error) {
 		if err != nil {
 			return nil, err
 		}
-		for i := 0; i < size; i++ {
-			typ, err := reader.ReadString(4)
-			if err != nil {
+		items := make([]Item, size)
+		for i := range items {
+			if items[i].Type, err = reader.ReadString(4); err != nil {
 				return nil, err
 			}
-			switch typ {
-			// todo...
+			switch items[i].Type {
+			case "prop":
+				name, err := reader.ReadUnicodeString()
+				if err != nil {
+					return nil, err
+				}
+				id, err := reader.ReadDynamicString()
+				if err != nil {
+					return nil, err
+				}
+				key, err := reader.ReadDynamicString()
+				if err != nil {
+					return nil, err
+				}
+				items[i].Value = Property{Name: name, ID: id, Key: key}
+			case "Clss":
+				class, err := parseClass(reader)
+				if err != nil {
+					return nil, err
+				}
+				items[i].Value = class
+			case "Enmr":
+				name, err := reader.ReadUnicodeString()
+				if err != nil {
+					return nil, err
+				}
+				id, err := reader.ReadDynamicString()
+				if err != nil {
+					return nil, err
+				}
+				typ, err := reader.ReadDynamicString()
+				if err != nil {
+					return nil, err
+				}
+				enum, err := reader.ReadDynamicString()
+				if err != nil {
+					return nil, err
+				}
+				items[i].Value = ReferenceEnum{Name: name, ID: id, Type: typ, Enum: enum}
+			case "rele":
+				name, err := reader.ReadUnicodeString()
+				if err != nil {
+					return nil, err
+				}
+				id, err := reader.ReadDynamicString()
+				if err != nil {
+					return nil, err
+				}
+				value, err := reader.ReadInt32()
+				if err != nil {
+					return nil, err
+				}
+				items[i].Value = Offset{Name: name, ID: id, Value: value}
+			case "Idnt", "indx":
+				id, err := reader.ReadInt()
+				if err != nil {
+					return nil, err
+				}
+				items[i].Value = id
+			case "name":
+				name, err := reader.ReadUnicodeString()
+				if err != nil {
+					return nil, err
+				}
+				items[i].Value = name
 			}
 		}
 	case "Objc", "Glb0":
-		item.Value, err = Parser(reader)
+		item.Value, err = Parse(reader)
 		if err != nil {
 			return nil, err
 		}
@@ -119,7 +215,7 @@ func parseItem(reader *util.Reader) (*Item, error) {
 		}
 		list := make([]*Item, 0, size)
 		for i := 0; i < size; i++ {
-			data, err := parseItem(reader)
+			data, err := parseItem(reader, false)
 			if err != nil {
 				return nil, err
 			}
@@ -179,12 +275,7 @@ func parseItem(reader *util.Reader) (*Item, error) {
 		}
 		item.Value = Boolean(b > 0)
 	case "type", "GlbC":
-		class := Class{}
-		class.Name, err = reader.ReadUnicodeString()
-		if err != nil {
-			return nil, err
-		}
-		class.ID, err = reader.ReadDynamicString()
+		class, err := parseClass(reader)
 		if err != nil {
 			return nil, err
 		}
@@ -213,7 +304,23 @@ func parseItem(reader *util.Reader) (*Item, error) {
 			return nil, err
 		}
 		item.Value = data
+	default:
+		panic(fmt.Sprintf("Unknown OSType key [%s] in entity [%s]", item.Key, item.Type))
 	}
 
 	return item, nil
+}
+
+func parseClass(reader *util.Reader) (*Class, error) {
+	var err error
+	class := &Class{}
+	class.Name, err = reader.ReadUnicodeString()
+	if err != nil {
+		return nil, err
+	}
+	class.ID, err = reader.ReadDynamicString()
+	if err != nil {
+		return nil, err
+	}
+	return class, nil
 }

@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/yu-ichiko/go-psd/util"
 	"image"
 	"io"
-
-	"github.com/yu-ichiko/go-psd/util"
 )
 
 type decoder struct {
@@ -151,7 +150,6 @@ func (dec *decoder) parseHeader() error {
 	dec.header.ColorMode = ColorMode(util.ReadUint16(buf, read))
 	read += headerLens[7]
 
-	fmt.Println(dec.header)
 	return nil
 }
 
@@ -470,7 +468,6 @@ func (dec *decoder) parseGlobalLayerMask() (*GlobalLayerMask, error) {
 		return nil, err
 	}
 	size := util.ReadUint32(buf, 0)
-	fmt.Println("->", size)
 	if size <= 0 {
 		return nil, nil
 	}
@@ -766,33 +763,30 @@ func Decode(r io.Reader) (*PSD, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(colorModeData)
 
 	blocks, err := dec.parseImageResources()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(blocks)
 
 	layers, globalMask, addInfos, err := dec.parseLayerAndMaskInfo()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(layers, globalMask, addInfos)
-	//
-	//img, err := dec.parseImageData()
-	//if err != nil {
-	//	return nil, err
-	//}
+
+	img, err := dec.parseImageData()
+	if err != nil {
+		return nil, err
+	}
 
 	psd := &PSD{
-		Header:        dec.header,
-		ColorModeData: colorModeData,
-		//ImageResources:  blocks,
-		//Layers:          layers,
-		//GlobalLayerMask: globalMask,
-		//AdditionalInfos: addInfos,
-		//Image:           img,
+		Header:          dec.header,
+		ColorModeData:   colorModeData,
+		ImageResources:  blocks,
+		Layers:          layers,
+		GlobalLayerMask: globalMask,
+		AdditionalInfos: addInfos,
+		Image:           img,
 	}
 	return psd, nil
 }

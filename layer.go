@@ -50,24 +50,47 @@ func (l *Layer) setRect(top, left, bottom, right int) {
 
 func (l *Layer) setAdditionalInfo(addInfo *AdditionalInfo) {
 
-	fmt.Println("-->", addInfo.Key)
-
-	// Layer ID
-	if addInfo.Key == "lyid" {
+	switch addInfo.Key {
+	case "lyid":
 		additional.NewLayerID(addInfo.Data)
-	}
-
-	if addInfo.Key == "lnsr" {
-		fmt.Println(additional.NewLayerNameSource(addInfo.Data))
-	}
-
-	// Unicode layer name
-	if addInfo.Key == "luni" {
+	case "lnsr":
+		additional.NewLayerNameSource(addInfo.Data)
+	case "luni":
 		additional.NewLayerName(addInfo.Data)
-	}
-
-	if addInfo.Key == "artb" {
+	case "artb":
 		additional.NewArtboard(addInfo.Data)
+	case "fxrp":
+		additional.NewReferencePoint(addInfo.Data)
+	case "GdFl":
+		additional.NewGradientFill(addInfo.Data)
+	case "clbl":
+		additional.NewBlendClippingElements(addInfo.Data)
+	case "infx":
+		additional.NewBlendInteriorElements(addInfo.Data)
+	case "knko":
+		additional.NewKnockoutSetting(addInfo.Data)
+	case "lspf":
+		additional.NewLocked(addInfo.Data)
+	case "lclr":
+		additional.NewSheetColorSetting(addInfo.Data)
+	case "shmd":
+		additional.NewMetadataSetting(addInfo.Data)
+	case "SoCo":
+		additional.NewSolidColorSheetSetting(addInfo.Data)
+	case "TySh":
+		additional.NewTypeToolObjectSetting(addInfo.Data)
+	case "lsct":
+		additional.NewSectionDividerSetting(addInfo.Data)
+	case "vmsk", "vsms":
+		additional.NewVectorMaskSetting(addInfo.Data)
+	case "lyvr":
+		additional.NewLayerVersion(addInfo.Data)
+	case "lfx2":
+		additional.NewObjectEffectsLayerInfo(addInfo.Data)
+	case "lrFX":
+		additional.NewEffectsLayer(addInfo.Data)
+	default:
+		fmt.Println("-->", addInfo.Key)
 	}
 
 	l.AdditionalInfos = append(l.AdditionalInfos, addInfo)

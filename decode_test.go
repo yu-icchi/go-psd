@@ -1,7 +1,6 @@
 package psd
 
 import (
-	"github.com/k0kubun/pp"
 	"github.com/stretchr/testify/require"
 	"image"
 	"image/png"
@@ -11,7 +10,7 @@ import (
 )
 
 func TestDecode(t *testing.T) {
-	filename := "mask"
+	filename := "test"
 	file, err := os.Open("./testdata/" + filename + ".psd")
 	if err != nil {
 		t.Error(err)
@@ -29,7 +28,6 @@ func TestDecode(t *testing.T) {
 		if layer.Image == nil {
 			continue
 		}
-		pp.Println(layer.AdditionalInfos)
 
 		filename := "./png/" + strconv.Itoa(layer.ID) + ".png"
 		if err := savePNG(filename, layer.Image); err != nil {

@@ -77,7 +77,7 @@ func NewTypeToolObjectSetting(buf []byte) (*Typetool, error) {
 		return nil, errors.New("invalid TypeToolObjectSetting descriptor version")
 	}
 
-	if obj.TextData, err = descriptor.Parser(reader); err != nil {
+	if obj.TextData, err = descriptor.Parse(reader); err != nil {
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func NewTypeToolObjectSetting(buf []byte) (*Typetool, error) {
 		return nil, errors.New("invalid TypeToolObjectSetting descriptor version")
 	}
 
-	if obj.WarpData, err = descriptor.Parser(reader); err != nil {
+	if obj.WarpData, err = descriptor.Parse(reader); err != nil {
 		return nil, err
 	}
 

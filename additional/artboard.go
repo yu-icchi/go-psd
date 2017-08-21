@@ -7,7 +7,7 @@ import (
 )
 
 type Artboard struct {
-	Text  string         `json:"text"`
+	Name  string         `json:"name"`
 	Color *ArtboardColor `json:"color"`
 	Type  int            `json:"type"`
 	Rect  *ArtboardRect  `json:"rect"`
@@ -37,7 +37,7 @@ func NewArtboard(buf []byte) (*Artboard, error) {
 	if version != 16 {
 		return nil, errors.New("invalid artboard")
 	}
-	desc, err := descriptor.Parser(reader)
+	desc, err := descriptor.Parse(reader)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func NewArtboard(buf []byte) (*Artboard, error) {
 		switch item.Key {
 		case "artboardPresetName":
 			if name, ok := item.Value.(descriptor.Text); ok {
-				artboard.Text = name.String()
+				artboard.Name = name.String()
 			}
 		case "artboardBackgroundType":
 			if long, ok := item.Value.(descriptor.Integer); ok {
